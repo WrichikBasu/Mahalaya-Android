@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">মহালয়া অ্যাপ</string>
+    <string name="developer">নির্মাতা: ঋচীক বসু</string>
+    <string name="date_time_act_label">তারিখ এবং সময় নির্ধারন করুন:</string>
+    <string name="today_btn_label">আজকে ভোর চারটে</string>
+    <string name="tomorrow_btn_label">আগামিকাল ভোর চারটে</string>
+    <string name="manual_set_btn_label">অন্য কোনো সময় নির্দিষ্ট করুন</string>
+    <string name="morning">সুপ্রভাত!</string>
+    <string name="mpa_default_media_state">মিডিয়ার অবস্থা নির্ধারণ করছি…</string>
+    <string name="time_act_label">সময় নির্দিষ্ট করুন:</string>
+    <string name="date_act_label">তারিখ নির্দিষ্ট করুন:</string>
+    <string name="proceed_time_label">সময় নির্ধারণ করুন</string>
+    <string name="proceed_to_media_file">মিডিয়া ফাইল নির্বাচন করুন</string>
+    <string name="ctda_date_label">নির্বাচিত তারিখ:</string>
+    <string name="ctda_time_label">নির্বাচিত সময়:</string>
+    <string name="ctda_time_left_label">কতক্ষণ বাকি:</string>
+    <string name="mpa_abort_button">মিডিয়া বাজানো বাতিল করুন</string>
+    <string name="ctda_abort_button">প্রোগ্রাম বাতিল করুন</string>
+    <string name="thanks">এই অ্যাপ ব্যবহার করার জন্য আপনাকে ধন্যবাদ।</string>
+    <string name="what_the_app_has_done">এই অ্যাপটি আপনার দ্বারা নির্ধারিত সময়ে মহালয়া বাজিয়েছে।</string>
+    <string name="wish">প্রার্থনা করি পুজোর দিনগুলো আপনার ভালো কাটুক॥</string>
+    <string name="pic_alt_text">মা দুর্গার ছবি</string>
+    <string name="default_time_left">নির্ধারণ করছি…</string>
+    <string name="choose_file">মিডিয়া ফাইল সিলেক্ট করুন</string>
+    <string name="selected_file_label">নির্বাচিত ফাইল:</string>
+    <string name="default_file">কোন ফাইল চয়ন করা হয়নি</string>
+    <string name="start_button">প্রোগ্রাম শুরু করুন</string>
+    <plurals name="day">
+        <item quantity="one" tools:ignore="ImpliedQuantity">দিন</item>
+        <item quantity="other">দিন</item>
+    </plurals>
+    <plurals name="hour">
+        <item quantity="one" tools:ignore="ImpliedQuantity">ঘন্টা</item>
+        <item quantity="other">ঘন্টা</item>
+    </plurals>
+    <plurals name="mins">
+        <item quantity="one" tools:ignore="ImpliedQuantity">মিনিট</item>
+        <item quantity="other">মিনিট</item>
+    </plurals>
+    <plurals name="secs">
+        <item quantity="one" tools:ignore="ImpliedQuantity">সেকেন্ড</item>
+        <item quantity="other">সেকেন্ড</item>
+    </plurals>
+    <string name="time_up">সময় শেষ</string>
+    <string name="and">" ও "</string>
+    <string name="media_playing">মহালয়া বাজছে।</string>
+    <string name="media_paused">প্লেব্যাক বন্দ আছে।</string>
+    <string name="time_left_notif">"সময় বাকি: "</string>
+    <string name="playback_complete">বিসদে জানতে ট্য়াপ করুন</string>
+    <string name="choose_theme">থিম বাছুন:</string>
+    <string name="light">আলোকিত</string>
+    <string name="dark">অন্ধকার</string>
+    <string name="time">সময়ের দ্বারা নির্দিষ্ট</string>
+    <string name="system">সিসটেমের দ্বারা নির্দিষ্ট</string>
+    <string name="set_theme">প্রয়োগ করো</string>
+    <string name="message_alert">প্রোগ্রামটি একবার শুরু হয়ে গেলে তারিখ এবং সময় পরিবর্তন করা যাবে না।</string>
+    <string name="alert_cont">ঠিক আছে</string>
+    <string name="alert_cancel">বাতিল করুন</string>
+    <string name="theme">ডার্ক থিম সক্রিয়/নিষ্ক্রিয় করুন</string>
+    <string name="app_motive">মায়ের আগমনি শোনার এক অভিনব ও স্বয়ংক্রিয় পদ্ধতি</string>
+    <string name="date_success">তারিখ সফলভাবে চয়ন করা হয়েছে</string>
+    <string name="time_success">সময় সফলভাবে চয়ন করা হয়েছে</string>
+    <string name="toast_today">আজকে ভোর চারটের সময় মহালয়া বাজবে</string>
+    <string name="toast_tomorrow">আগামিকাল ভোর চারটের সময় মহালয়া বাজবে</string>
+    <string name="execution_cancel">প্রোগ্রাম শুরু করা হল না</string>
+    <string name="past_time">ভবিষ্যতের সময় বাছুন</string>
+    <string name="help">এই অ্যাপটি কীভাবে ব্যবহার করবেন?</string>
+    <string name="ctda_default_date">০১.১.১৯৭০</string>
+    <string name="ctda_default_time">০০:০০</string>
+    <string name="day_short">দিন</string>
+    <string name="hour_short">ঘঃ</string>
+    <string name="minute_short">মিঃ</string>
+    <string name="second_short">সেঃ</string>
+    <string name="how_to_label">এই অ্যাপটি কীভাবে ব্যাবহার করবেন</string>
+    <string name="how_to_text_content">
+
+        \n "মহালয়া" অ্যাপে স্বাগতম!\n\n
+
+        আপনি তারিখ এবং সময় নির্ধারণ করে দিলে এই অ্যাপ্লিকেশনটি সঠিক সময়ে স্বয়ংক্রিয়ভাবে এর অন্তর্নিহিত মিডিয়া
+        প্লেয়ারটি ব্যবহার করে মহালয়া বাজাতে পারে।\n\n
+
+        আপনার কাছে প্রথমে চারটি বিকল্প থাকবে:\n
+        ১. আজ সকাল ৪টেয় প্রোগ্রাম সেট করুন,\n
+        ২. আগামিকাল সকাল ৪টেয় প্রোগ্রাম সেট করুন,\n
+        ৩. মিডিয়া ফাইল নির্বাচন করুন, এবং \n
+        ৪. ফাইল চয়ন করুন।\n\n
+
+        প্রথম দুটি স্বয়ংক্রিয়ভাবে তারিখ এবং সময় নির্দিষ্ট করবে। আপনি কখন প্রোগ্রামটি শুরু করছেন তার উপর নির্ভর
+        করে প্রথম বিকল্পটি উপলভ্য নাও হতে পারে। তৃতীয় বিকল্পটি আপনার ইচ্ছা অনুযায়ী প্রথমে তারিখ এবং তার পর সময়
+        নির্ধারণ করতে দেবে। সময় নির্বাচনের পর আপনাকে মিডিয়া ফাইল চয়ন করতে হবে।\n\n
+
+        যদি আপনি প্রথম দুটি বিকল্পের মধ্যে কোনও একটি চয়ন করেন, তবে আপনি সরাসরি বিকল্প ৪এ ক্লিক করে মিডিয়া ফাইল নির্বাচন  স্ক্রিনে যেতে পারেন ।\n\n
+
+        দুর্ভাগ্যক্রমে এই অ্যাপ্লিকেশনটির মধ্যে মহালয়া মিডিয়া ফাইল <b>নেই</b>। ফাইলটির আকার প্রায় ১৫০ MB,
+        এবং তাই আমি অ্যাপ্লিকেশনটির সাথে সেই ফাইলটি প্যাক না করার সিদ্ধান্ত নিয়েছি যাতে ডাউনলোড করার সময় আপনার অভ্যন্তরীণ
+        স্টোরেজ হঠাৎ করেই পুরো ভোরে যায় না এবং আপনার ফোন ক্র্যাশ না করে যায়। আপনি mp4 এবং mp3 ফরম্যাটে
+        মিডিয়া ফাইলটি ডাউনলোড করতে পারেন নিম্নলিখিত লিঙ্কগুলির মাধ্যমে। \n\n
+
+        হয় উপর থেকে ১ বা ২ নং বিকল্প বেছে নেওয়ার পরে, বা সময় নির্ধারণের পরে (অর্থাৎ আপনি যদি বিকল্প ৩ পছন্দ করে থাকেন),
+        আপনাকে মিডিয়া ফাইল নির্বাচন করতে হবে। এই ফাইলটি যে কোনও জায়গায় রাখা যেতে পারে - অভ্যন্তরীণ স্টোরেজ বা
+        মাইক্রোএসডি কার্ড, যেটা আপনার জন্য উপযুক্ত। মিডিয়া নির্বাচন পর্দায়, আপনি যখন "একটি মিডিয়া ফাইল চয়ন করুন" এ ক্লিক করবেন,
+        তখন ফাইল ব্রাউজার খুলবে যেখানে আপনি ফাইলটি সিলেক্ট করতে পারেন। বর্তমানে সমর্থিত ফর্ম্যাটগুলি কেবল mp4 এবং mp3।
+        ফাইলটি সিলেক্ট করার পর এর পাথটি মিডিয়া নির্বাচন পর্দায় দৃশ্যমান হবে। \n\n
+
+        এবার আপনি প্রোগ্রাম শুরু করতে পারেন। মনে রাখবেন, এরপর প্রোগ্রামটি বাতিল না করে আপনি তারিখ এবং সময় পরিবর্তন করতে পারবেন না।\n\n
+
+        প্রোগ্রামটি শুরু হয়ে গেলে, আপনাকে একটি স্ক্রিনে নিয়ে যাওয়া হবে যেখানে আপনি মহালয়া শুরু হওয়ার কতক্ষণ বাকি - সেটা দেখতে পারবেন।
+        একটি চলমান বিজ্ঞপ্তি থাকবে যা আপনাকে কতক্ষণ বাকি দেখাবে। আপনি নিরাপদে কাউন্টডাউন স্ক্রিন থেকে প্রস্থান করতে পারেন; এতে প্রোগ্রাম বাধাগ্রস্ত হবে না।
+        আপনি যদি বিজ্ঞপ্তিতে ক্লিক করেন, তাহলে আপনি আবার ফিরে আসতে পারবেন কাউন্টডাউন স্ক্রিনে। \n\n
+
+        কাউন্টডাউন স্ক্রিনে একটি বোতামও রয়েছে। আপনি যদি প্রোগ্রামটি থামাতে চান তবে এই বোতামটি টিপুন। \n\n
+
+        মিডিয়া প্লেয়ারের জন্য সঠিক ভলিউম সেট করতে ভুলবেন না। মিডিয়া স্ট্রিমটি নিঃশব্দ করা থাকলে,
+        মহালয়া শুরু হয়ে গেলেও আপনি কিছুই শুনতে পারবেন না।\n\n
+
+        সময় এলে প্লেব্যাক স্বয়ংক্রিয়ভাবে শুরু হবে। একটি বিজ্ঞপ্তি থাকবে যা আপনাকে সাহায্য করবে মহালয়া বাজানো
+        বন্ধ বা পুনরায় শুরু করতে। এই বিজ্ঞপ্তিতে ক্লিক করলে আপনাকে একটি স্ক্রিনে নিয়ে যাওয়া হবে যা মহালয়া শেষ হতে
+        কতক্ষণ বাকি, তা দেখানো হবে। পাশাপাশি একটি বোতামও থাকবে যা প্লেব্যাক পুরোপুরি বন্ধ করে দেবে এবং অ্যাপটিকে মেরে ফেলবে।\n\n
+
+        আপনি টুলবারে বাল্ব আইকনটি ক্লিক করে অ্যাপের থিম পরিবর্তন করতে পারেন।\n\n
+
+        কোনো প্রশ্ন বা মতামত থাকলে নির্দ্বিধায় আমাকে ইমেল করবেন। আমার ইমেল আইডি হল <a href="mailto:basulabs.developer@gmail.com">basulabs.developer@gmail.com</a>
+        অ্যাপে কোনো গণ্ডগোল পেলে দয়া করে লিখবেন ঠিক কী করলে সেটা হচ্ছে। একটি স্ক্রিন ভিডিও পাঠালেও খুব সাহায্য হবে।\n\n
+
+        আশা করি অ্যাপটি ব্যাবহার করে আপনি খুশি হবেন।\n\n
+
+        মিডিয়া ডাউনলোড করার লিঙ্কগুলি নীচে পাবেন।
+    </string>
+    <string name="mp4_download">mp4 ফর্ম্যাটে মিডিয়া ফাইল ডাউনলোড করুন \u2197</string>
+    <string name="mp3_download">mp3 ফর্ম্যাটে মিডিয়া ফাইল ডাউনলোড করুন \u2197</string>
+    <string name="marquee_volume_reminder">সঠিক মিডিয়া ভলিউম সেট করতে ভুলবেন না!</string>
+    <string name="dont_have_file">মিডিয়া ফাইল ডাউনলোড করার লিঙ্ক:</string>
+    <string name="choose_file_desc">এই অ্যাপটির মধ্যে মহালয়া মিডিয়া ফাইলটি নেই। আপনি যদি এখনো ফাইলটি ডাউনলোড
+        না করে থাকেন, তাহলে এই পাতার শেষে অবস্থিত ডাউনলোড লিঙ্কগুলির সাহায্য নিতে পারেন। ডাউনলোড শেষ হয়ে
+        গেলে উপরের বোতামটি দিয়ে ফাইলটি নির্বাচন করুন। ফাইলটি এসডি কার্ড বা অভ্যন্তরীণ স্টোরেজে রাখা যেতে পারে।</string>
+</resources>

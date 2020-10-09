@@ -1,0 +1,174 @@
+<resources>
+
+    <string name="app_name">Mahalaya App</string>
+
+    <!-- SplashScreenActivity -->
+    <string name="app_motive">An innovative and automated way of listening to Mahalaya!</string>
+    <string name="developer">Developer: Wrichik Basu @ Basulabs</string>
+    <string name="pic_alt_text">Durga picture</string>
+
+    <!-- DateTimeActivity -->
+    <string name="date_time_act_label">Date and Time Settings:</string>
+    <string name="today_btn_label">Set up program for today at 4am</string>
+    <string name="tomorrow_btn_label">Set up program for tomorrow at 4am</string>
+    <string name="manual_set_btn_label">Manually set up a date and time</string>
+    <string name="proceed_to_media_file">Proceed to Select Media File</string>
+
+    <!-- ManualDateActivity -->
+    <string name="date_act_label">Select the date:</string>
+    <string name="proceed_time_label">Proceed to set time</string>
+
+    <!-- ManualTimeActivity -->
+    <string name="time_act_label">Select the time:</string>
+
+    <!-- ActivityFiles -->
+    <string name="choose_file">Choose the media file</string>
+    <string name="choose_file_desc">This app does <b>not</b> come with the Mahalaya media
+    file. If you haven\'t downloaded it yet, scroll down to find the links for downloading. Once the download is
+    over, choose the file by the above button. The file may be placed in SD card or the internal storage.</string>
+    <string name="selected_file_label">Selected file:</string>
+    <string name="default_file">No file selected!</string>
+    <string name="start_button">Start program</string>
+
+    <!-- CountdownActivity -->
+    <string name="ctda_date_label">Date set:</string>
+    <string name="ctda_time_label">Time set:</string>
+    <string name="ctda_time_left_label">Time left:</string>
+    <string name="ctda_default_date">01.1.1970</string>
+    <string name="ctda_default_time">00:00</string>
+    <string name="default_time_left">Calculating…</string>
+    <string name="ctda_abort_button">Abort program</string>
+
+    <!-- MediaPlayerActivity -->
+    <string name="mpa_default_media_state">Determining media state…</string>
+    <string name="mpa_abort_button">Abort playing media</string>
+    <string name="marquee_volume_reminder">Remember to set a decent media volume!</string>
+
+    <!-- ThankYouActivity -->
+    <string name="morning">Good Morning!</string>
+    <string name="what_the_app_has_done">This app has played Mahalaya at the time set by you.</string>
+    <string name="thanks">Thank you for using this app.</string>
+    <string name="wish">Have a great time during the Puja!</string>
+
+    <!-- Miscellaneous -->
+    <plurals name="day">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+    <plurals name="hour">
+        <item quantity="one">hour</item>
+        <item quantity="other">hours</item>
+    </plurals>
+    <plurals name="mins">
+        <item quantity="one">minute</item>
+        <item quantity="other">minutes</item>
+    </plurals>
+    <plurals name="secs">
+        <item quantity="one">second.</item>
+        <item quantity="other">seconds.</item>
+    </plurals>
+    <string name="day_short">d</string>
+    <string name="hour_short">h</string>
+    <string name="minute_short">m</string>
+    <string name="second_short">s.</string>
+    <string name="time_up">Time UP!</string>
+    <string name="and"> and </string>
+    <string name="media_playing">Media is playing.</string>
+    <string name="media_paused">Playback is paused.</string>
+    <string name="time_left_notif">Time left: </string>
+    <string name="playback_complete">Playback complete.</string>
+
+    <!-- Theme -->
+    <string name="choose_theme">Choose theme:</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
+    <string name="time">Set by time</string>
+    <string name="system">Set by system</string>
+    <string name="set_theme">Apply</string>
+
+    <!-- AlertBox -->
+    <string name="message_alert">Once the program is started, date and time cannot be changed.</string>
+    <string name="alert_cont">Continue</string>
+    <string name="alert_cancel">Cancel</string>
+
+    <!-- Toolbar -->
+    <string name="theme">Enable/Disable dark theme</string>
+    <string name="help">How to use this app?</string>
+
+    <!-- Toast -->
+    <string name="date_success">Date picked successfully</string>
+    <string name="time_success">Time picked successfully.</string>
+    <string name="toast_today">Program set for today at 4 am</string>
+    <string name="toast_tomorrow">Program set for tomorrow at 4 am</string>
+    <string name="past_time">Time chosen is in the past!</string>
+    <string name="execution_cancel">Execution cancelled</string>
+
+    <!-- HowToActivity -->
+    <string name="how_to_label">How to use this app</string>
+    <string name="how_to_text_content">
+
+        Welcome to the Mahalaya app!\n\n
+
+        In this app, you can set the date and time when you want Mahalaya to be played. When the time comes,
+        the app will automatically play Mahalaya using its inbuilt media player. This means that you do not
+        need to download any third-party media player.\n\n
+
+        After the splash screen, you will have a screen showing you four options:\n
+            1. Set program for today at 4 am,\n
+            2. Set program for tomorrow at 4 am,\n
+            3. Manually set a date and time, and\n
+            4. Proceed to chose the files.\n\n
+
+        The first two will automatically set the date and time as they state. The first option may not be available
+        depending on when you are starting the program. The third option will allow you to set a date
+        and time according to your wish. You will be directed to a screen where you will can choose a date. After clicking
+        <code>Proceed to set time</code>, you will go to another screen where you will be able to set the time.
+        After this, you are required to select the media file.\n\n
+
+        If you choose any of the first two options, then you can directly go to media file selection screen by clicking on option 4.\n\n
+
+        Unfortunately this app does <b>not</b> contain the media file for Mahalaya. The size of the file is about 150 MB
+        in mp4 format, and hence I decided not to pack that file with the app so that while downloading, your internal
+        storage doesn\'t get full all of a sudden and your phone crashes. You can download the media file in mp4 or mp3
+        format from Google Drive through the links at the end.\n\n
+
+        Either after choosing options 1 or 2 from above, or after setting the time (i.e. if you chose option 3),
+        you have to select the media file. This file can be placed anywhere - the internal storage or the
+        microSD card, whichever is suitable for you. In the media selection screen, when you click on "Choose a media file",
+        the file browser opens where you can select the file. Currently supported formats are mp4 and mp3 only. When you select
+        the file, its path will be visible in the media selection screen.\n\n
+
+        Now you can start the program. Remember, once you do that, you cannot change the date and time
+        without aborting the current instance of the program.\n\n
+
+        Once the countdown starts, you will be taken to a screen where you will be able to see the time left for Mahalaya
+        to start. There will be an ongoing notification that will also show you the time left. You can safely
+        exit the countdown screen; that will not hamper the program. If you click on the notification, you can come back to the
+        this screen again.\n\n
+
+        The countdown screen also has an abort button. In case you want to stop the program, click this button.\n\n
+
+        Please remember to set a decent volume for the media player. If the media stream is muted, you
+        will not be able to hear anything when Mahalaya starts.\n\n
+
+        Once the time arrives, the playback will start automatically. There will be a notification that will allow you to
+        pause or re-start the media player. Clicking on this notification will take you to a screen that will show the time
+        left for the media to end. There will be an abort button here as well, which will completely stop the playback and kill the app.\n\n
+
+        You can change the theme of the app by clicking the bulb icon in the toolbar.\n\n
+
+        If you have any question or suggestion, feel free to drop me an email at <a href="mailto:basulabs.developer@gmail.com">basulabs.developer@gmail.com</a>
+        and I shall be happy to help. If you have found a bug, please mention the exact steps so that I can reproduce it.
+        A screen video will also be very helpful.\n\n
+
+        Thank you for trying this app.\n\n
+
+        The media download links are available below.
+    </string>
+    <string name="mp4_download">Download media file in mp4 format</string>
+    <string name="mp3_download">Download media file in mp3 format</string>
+
+    <string name="dont_have_file">Links to download the media file:</string>
+
+
+</resources>

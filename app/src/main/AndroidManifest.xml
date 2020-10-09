@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="in.basulabs.mahalaya"
+    android:installLocation="preferExternal">
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <uses-feature
+        android:name="android.hardware.audio.output"
+        android:required="true" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:installLocation="preferExternal"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
+
+        <activity
+            android:name=".MainActivity"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="in.basulabs.mahalaya.SplashScreenActivity">
+            <!--<intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>-->
+        </activity>
+
+        <activity
+            android:name="in.basulabs.mahalaya.DateTimeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="in.basulabs.mahalaya.ManualDateActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="in.basulabs.mahalaya.ManualTimeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="in.basulabs.mahalaya.FilesActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="in.basulabs.mahalaya.CountdownActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:noHistory="true" />
+
+        <activity
+            android:name="in.basulabs.mahalaya.MediaPlayerActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:noHistory="true" />
+
+        <activity
+            android:name="in.basulabs.mahalaya.HelpActivity"
+            android:exported="false" />
+
+        <service
+            android:name="in.basulabs.mahalaya.MahalayaService"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:taskAffinity="">
+            <!--<intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/mp4" />
+            </intent-filter>-->
+        </service>
+
+        <service
+            android:name="in.basulabs.mahalaya.MediaPlayerService"
+            android:enabled="false"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="" />
+
+        <receiver android:name="in.basulabs.mahalaya.MahalayaBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.media.AUDIO_BECOMING_NOISY" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="in.basulabs.mahalaya.TRIGGER_FINAL_ACTIVITY" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name="in.basulabs.mahalaya.ThankYouActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
+
+    </application>
+
+</manifest>
