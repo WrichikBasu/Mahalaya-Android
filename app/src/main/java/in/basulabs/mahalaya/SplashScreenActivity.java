@@ -1,109 +1,147 @@
 package in.basulabs.mahalaya;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
+import android.os.CountDownTimer;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
-import java.util.Calendar;
+import java.time.LocalTime;
+
+import static in.basulabs.mahalaya.Constants.SHARED_PREF_KEY_THEME;
 
 public class SplashScreenActivity extends AppCompatActivity {
 
-	private static boolean hasNextActivityBeenStarted = false;
+	/**
+	 * The currently active theme.
+	 * <p>
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
+	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * </p>
+	 *
+	 * @see Constants#THEME_LIGHT
+	 * @see Constants#THEME_DARK
+	 * @see Constants#THEME_SYSTEM
+	 * @see Constants#THEME_AUTO_TIME
+	 */
+	int currentTheme;
 
-	private Handler handler;
+	private CountDownTimer countDownTimer;
 
-	private static boolean IAmAlive = false;
+	/**
+	 * The time (in milliseconds) after which the next activity should be launched.
+	 * <p>
+	 * This variable has to be used with {@link #countDownTimer}. On each tick, the {@code millisUntilFinished} is
+	 * stored in this variable. If the activity is recreated  or paused, then the countdown will start from the left
+	 * over state and not again from the beginning.
+	 * </p>
+	 */
+	private long millisInFuture;
+
+	/**
+	 * Save instance state key for storing {@link #millisInFuture}.
+	 */
+	private static final String SAVE_INSTANCE_KEY_MILLIS_IN_FUTURE =
+			"in.basulabs.mahalaya.SplashScreenActivity.MILLIS_IN_FUTURE";
+
+	//--------------------------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		//Log.e(this.getClass().toString(), "Inside onCreate()");
 		super.onCreate(savedInstanceState);
-
-		//////////////////////////////////////////////////////////////////
-		// For Android Q+, set default theme to "Set by System".
-		// For lower versions, set default theme according to time.
-		//////////////////////////////////////////////////////////////////
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-		} else {
-			if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 6 || Calendar.getInstance()
-					.get(Calendar.HOUR_OF_DAY) >= 22) {
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-			}
-		}
-
 		setContentView(R.layout.activity_splash);
-		if (! hasNextActivityBeenStarted) {
-			hasNextActivityBeenStarted = true;
-				/*Handler handler = new Handler();
-				handler.postDelayed(new Runnable() {
-					public void run() {
-						startNextActivity();
-					}
-				}, 7000);*/
-			startNextActivity();
-		}
 
+		// Get the theme:
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
+				Constants.THEME_AUTO_TIME;
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
+				defaultTheme);
+
+		// Set the theme:
+		if (savedInstanceState == null) {
+			changeTheme();
+			millisInFuture = 5000;
+		} else {
+			millisInFuture = savedInstanceState.getLong(SAVE_INSTANCE_KEY_MILLIS_IN_FUTURE);
+		}
 
 	}
+
+	//--------------------------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		IAmAlive = true;
-	}
 
-	@Override
-	protected void onStop() {
-		super.onStop();
-		IAmAlive = false;
-	}
+		Context context = this;
 
-	private void startNextActivity() {
+		countDownTimer = new CountDownTimer(millisInFuture, 100) {
 
-		handler = new Handler(Looper.getMainLooper()) {
 			@Override
-			public void handleMessage(Message msg) {
-				Bundle bundle = msg.getData();
-				if (bundle.getBoolean("Start Next Activity?")) {
-					Intent intent = new Intent(getApplicationContext(), DateTimeActivity.class);
-					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-					startActivity(intent);
-					//Log.e(this.getClass().toString(), "Next activity started.");
-					finish();
-				}
+			public void onTick(long millisUntilFinished) {
+				millisInFuture = millisUntilFinished;
+			}
+
+			@Override
+			public void onFinish() {
+				Intent intent = new Intent(context, DateTimeActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+				startActivity(intent);
+				finish();
 			}
 		};
+		countDownTimer.start();
+	}
 
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Looper.prepare();
-				float count = 0;
-				while (count < 7) {
-					if (IAmAlive) {
-						count += 0.5;
-					}
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException ignored) {
-					}
+	//--------------------------------------------------------------------------------------------------------------
+
+	@Override
+	protected void onSaveInstanceState(@NonNull Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putLong(SAVE_INSTANCE_KEY_MILLIS_IN_FUTURE, millisInFuture);
+	}
+
+	//---------------------------------------------------------------------------------------------------------------
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		countDownTimer.cancel();
+	}
+
+
+	//---------------------------------------------------------------------------------------------------------------
+
+	private void changeTheme() {
+
+		switch (currentTheme) {
+			case Constants.THEME_LIGHT:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+				break;
+
+			case Constants.THEME_DARK:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				break;
+
+			case Constants.THEME_SYSTEM:
+				AppCompatDelegate
+						.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+				break;
+
+			case Constants.THEME_AUTO_TIME:
+				if (LocalTime.now().isBefore(LocalTime.of(6, 0))
+						|| LocalTime.now().isAfter(LocalTime.of(21, 59))) {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				} else {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 				}
-				Message msg = Message.obtain();
-				Bundle bundle = new Bundle();
-				bundle.putBoolean("Start Next Activity?", true);
-				msg.setData(bundle);
-				handler.sendMessage(msg);
-			}
-		});
-		thread.start();
+				break;
+		}
 	}
 
 }

@@ -1,16 +1,12 @@
 package in.basulabs.mahalaya;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
+import android.os.CountDownTimer;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,209 +21,186 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 
 import java.text.NumberFormat;
-import java.util.Calendar;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static in.basulabs.mahalaya.Constants.SHARED_PREF_KEY_THEME;
+import static in.basulabs.mahalaya.MahalayaService.playbackDateTime;
 
 public class CountdownActivity extends AppCompatActivity implements View.OnClickListener {
 
-	private static int month, day, hour, minute;
-	/////////////////////////////////////////////////////
-	// These values are made static so that if, on
-	// activity re-creation, the intent delivers null
-	// values, the duration can still be shown.
-	////////////////////////////////////////////////////
+	/**
+	 * The currently active theme.
+	 * <p>
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
+	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * </p>
+	 *
+	 * @see Constants#THEME_LIGHT
+	 * @see Constants#THEME_DARK
+	 * @see Constants#THEME_SYSTEM
+	 * @see Constants#THEME_AUTO_TIME
+	 */
+	private int currentTheme;
 
-	@SuppressLint("StaticFieldLeak")
-	public static TextView timeLeftView;
-
-	private static int chosenTheme;
-	/////////////////////////////////////////////////////
-	// 0 - Light theme
-	// 1 - Dark Theme
-	// 2 - Set by time
-	// 3 - Set by System (Available on Android Q+)
-	////////////////////////////////////////////////////
-
+	/**
+	 * Indicates whether this activity is visible on the screen or not.
+	 * <p>
+	 * This variable is changed by {@link #onResume()} and {@link #onPause()}.
+	 * </p>
+	 */
 	public static boolean IamAlive;
-	////////////////////////////////////////////////////////////////////
-	// Carries information whether the activity is visible or not.
-	// This variable is changed by onCreate() and onPause()
-	////////////////////////////////////////////////////////////////////
 
-	private static boolean shouldThemeBeSet = false;
-	//////////////////////////////////////////////////////////////////////////
-	// Checks whether theme should be set by onCreate().
-	// If the activity is created/recreated due to a theme change by the
-	// theme change dialog box, then (except one case - set by time)
-	// onCreate() should not change theme of the activity. Do not change
-	// theme first time as this activity will be created when the previous
-	// activity has just died.
-	/////////////////////////////////////////////////////////////////////////
+	/**
+	 * This variable is used with {@link #countDownTimer} to change the color of the warning periodically.
+	 */
+	private boolean colorIsNormal = true;
 
-	private static boolean isThisFirstExecution = true;
-	////////////////////////////////////////////////////////////////////////////////////
-	// When this activity is started for the first time, the user would be looking
-	// at it. So the theme of this activity will be set according to the previous
-	// activity. Once the user closes this activity after first creation,
-	// onPause() will set the theme to "Set by time" (by setting
-	// shouldThemeBeSet = true), and set this flag to false.
-	//
-	// However, if the user changes the theme during
-	// first creation itself, then that is respected by changing this flag to
-	// false in the dialog box listener, so that onPause() will no longer change
-	// the theme automatically after first instance of this activity is paused.
-	///////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * This timer has two tasks: 1. Show the time left, and 2. Change the colour of the warning.
+	 */
+	private CountDownTimer countDownTimer;
 
-	private Handler handler;
-	private TextView reminder;
-	private boolean colorIsBlack = true;
+	//--------------------------------------------------------------------------------------------
 
-	private final BroadcastReceiver activityKiller = new BroadcastReceiver() {
+	private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			//Log.e(this.getClass().toString(), "Broadcast received to kill activity.");
-			finish();
+			if (Objects.equals(intent.getAction(), Constants.ACTION_KILL_COUNTDOWN_ACT)) {
+				finish();
+			}
 		}
 	};
+
+	//--------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.countdown_activity);
-		//Log.e(this.getClass().toString(), "Inside onCreate()");
 
-		//////////////////////////////////////////////////////////////
 		// Set the action bar:
-		/////////////////////////////////////////////////////////////
 		Toolbar myToolbar = findViewById(R.id.toolbar5);
 		setSupportActionBar(myToolbar);
 
-		/////////////////////////////////////////////////////////////////////
-		// Do not change theme on first instance.
-		//
-		// Also, if activity has been (re)created by a theme change from
-		// theme change dialog box, then do not change theme.
-		/////////////////////////////////////////////////////////////////////
-		if (shouldThemeBeSet) {
-			// Set theme to "Choose by time" default
-			chosenTheme = 2;
-			if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 6 || Calendar.getInstance()
-					.get(Calendar.HOUR_OF_DAY) >= 22) {
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-			} else {
-				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-			}
-		} else {
-			//////////////////////////////////////////////////////////////////
-			// We have to determine the theme only the first time the
-			// activity is created, because from consequent creations,
-			// either onPause() will set the theme, or the user will
-			// select the theme.
-			/////////////////////////////////////////////////////////////////
-			if (isThisFirstExecution) {
-				if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
-					chosenTheme = 1;
-				} else if (AppCompatDelegate
-						.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_NO) {
-					chosenTheme = 0;
-				} else if (AppCompatDelegate
-						.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
-					chosenTheme = 3;
-				}
-			}
+		// Set the theme:
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
+				Constants.THEME_AUTO_TIME;
+
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
+				defaultTheme);
+
+		if (savedInstanceState == null) {
+			changeTheme();
 		}
 
-		//////////////////////////////////////////////////////////////////
-		// Get the data from the intent:
-		/////////////////////////////////////////////////////////////////
-		Bundle extras = getIntent().getExtras();
-		if (extras != null) {
-			month = extras.getInt("month");
-			day = extras.getInt("day");
-			hour = extras.getInt("hour");
-			minute = extras.getInt("minute");
-			//Log.e(this.getClass().toString(), "Received " + month + " " + day + " " + hour + " " + minute);
-		}
-
-		////////////////////////////////////////////////////////////////
-		// Set the default values for the following text views:
-		// 1. Date that has been set
-		// 2. Time that has been set
-		// 3. Time left for playback to end
-		///////////////////////////////////////////////////////////////
-		TextView dateView = findViewById(R.id.dateView);
-		TextView timeView = findViewById(R.id.timeView);
-		timeLeftView = findViewById(R.id.timeLeftView);
-		reminder = findViewById(R.id.reminder_vol);
+		int day = playbackDateTime.getDayOfMonth(), month = playbackDateTime.getMonthValue(),
+				year = playbackDateTime.getYear(), hour = playbackDateTime.getHour(),
+				minute = playbackDateTime.getMinute();
 
 		NumberFormat numFormat = NumberFormat.getInstance();
 		numFormat.setGroupingUsed(false);
 
+		/////////////////////////////////////////////////////////
+		// Display the date when the media will be played:
+		////////////////////////////////////////////////////////
+		TextView dateView = findViewById(R.id.dateView);
 		String date = (Integer.toString(day).length() == 1 ? (numFormat.format(0L)
 				+ "" + numFormat.format(day)) : ("" + numFormat.format(day)))
 				+ "." + (Integer.toString(month).length() == 1 ? (numFormat.format(0L)
 				+ "" + numFormat.format(month)) : ("" + numFormat.format(month))) + "."
-				+ "" + numFormat.format(Calendar.getInstance().get(Calendar.YEAR));
-
+				+ "" + numFormat.format(year);
 		dateView.setText(date);
 
+		//////////////////////////////////////////////////////
+		// Display the time when the media will be played:
+		/////////////////////////////////////////////////////
+		TextView timeView = findViewById(R.id.timeView);
 		String time = (Integer.toString(hour).length() == 1 ? (numFormat.format(0L)
 				+ "" + numFormat.format(hour)) : ("" + numFormat.format(hour)))
 				+ ":" + (Integer.toString(minute).length() == 1 ? (numFormat.format(0L)
 				+ "" + numFormat.format(minute)) : "" + numFormat.format(minute));
-
 		timeView.setText(time);
+
+		TextView timeLeftTextView = findViewById(R.id.timeLeftView);
+		TextView warningTextView = findViewById(R.id.reminder_vol);
 
 		Button abort_btn = findViewById(R.id.abort_btn);
 		abort_btn.setOnClickListener(this);
 
-		///////////////////////////////////////////////////////////
-		// Register the broadcast receiver
-		//////////////////////////////////////////////////////////
-		IntentFilter intentFilter = new IntentFilter(Constants.ACTION_KILL_COUNTDOWN_ACT);
-		registerReceiver(activityKiller, intentFilter);
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(Constants.ACTION_KILL_COUNTDOWN_ACT);
+		registerReceiver(broadcastReceiver, intentFilter);
+
+		/////////////////////////////////////////////////////////////
+		// Display the time left, and periodically change colour
+		// of the warning.
+		/////////////////////////////////////////////////////////////
+		Duration duration = Duration.between(LocalDateTime.now(), playbackDateTime);
+		Context context = this;
+
+		countDownTimer = new CountDownTimer(duration.toMillis(), 500) {
+			@Override
+			public void onTick(long millisUntilFinished) {
+
+				// Display time left:
+				timeLeftTextView.setText(DurationFinder.getDuration(millisUntilFinished,
+						DurationFinder.TYPE_ACTIVITY, context));
+
+				// Change warning colour:
+				if (colorIsNormal) {
+					warningTextView.setTextColor(getResources().getColor(R.color.focus_color));
+				} else {
+					warningTextView.setTextColor(getResources().getColor(R.color.default_color));
+				}
+				colorIsNormal = ! colorIsNormal;
+			}
+
+			@Override
+			public void onFinish() {
+				timeLeftTextView.setText(R.string.time_up);
+			}
+		};
 	}
+
+	//--------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		//Log.e(this.getClass().toString(), "Inside onResume()");
-		changeTVColor();
 		IamAlive = true;
+		countDownTimer.start();
 	}
+
+	//--------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		//Log.e(this.getClass().toString(), "Inside onPause()");
-
-		// Set default theme only the first time the activity is created.
-		if (isThisFirstExecution && ! isChangingConfigurations()) {
-			shouldThemeBeSet = true;
-			isThisFirstExecution = false;
-		}
-	}
-
-	@Override
-	protected void onStop() {
-		super.onStop();
-		// Activity is no longer visible.
 		IamAlive = false;
-		//Log.e(this.getClass().toString(), "Inside onStop()");
+		countDownTimer.cancel();
 	}
+
+	//--------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onDestroy() {
-		//Log.e(this.getClass().toString(), "Inside onDestroy()");
 		super.onDestroy();
-		unregisterReceiver(activityKiller);
-		timeLeftView = null;
+		unregisterReceiver(broadcastReceiver);
 	}
+
+	//--------------------------------------------------------------------------------------------
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.toolbar_menu2, menu);
 		return true;
 	}
+
+	//--------------------------------------------------------------------------------------------
 
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -238,20 +211,24 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 		return super.onOptionsItemSelected(item);
 	}
 
+	//--------------------------------------------------------------------------------------------
+
 	@Override
-	public void onClick(View v) {
-		if (v.getId() == R.id.abort_btn) {
+	public void onClick(View view) {
+		if (view.getId() == R.id.abort_btn) {
 			Intent intent = new Intent(this, MahalayaService.class);
 			stopService(intent);
-			//Log.e(this.getClass().toString(), "Program aborted.");
 			android.os.Process.killProcess(android.os.Process.myPid());
 		}
 	}
 
+	//--------------------------------------------------------------------------------------------
+
 	/**
-	 * Not only creates the theme dialog, but also sets the theme as per user choice.
+	 * Creates the theme chooser dialog.
 	 */
 	private void createThemeDialog() {
+
 		AlertDialog.Builder alb = new AlertDialog.Builder(this);
 		alb.setTitle(getString(R.string.choose_theme));
 		alb.setCancelable(true);
@@ -265,78 +242,52 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 					getString(R.string.time)};
 		}
 
-		int checkedItem = chosenTheme;
-		alb.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				chosenTheme = which;
-			}
-		});
+		AtomicInteger newTheme = new AtomicInteger(currentTheme);
 
-		alb.setPositiveButton(getString(R.string.set_theme), new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				isThisFirstExecution = false;
-				if (chosenTheme == 0) {
-					//Log.e(this.getClass().toString(), "Setting theme to light.");
-					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-					shouldThemeBeSet = false;
-				} else if (chosenTheme == 1) {
-					// Log.e(this.getClass().toString(), "Setting theme to dark.");
-					shouldThemeBeSet = false;
-					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-				} else if (chosenTheme == 2) {
-					// Log.e(this.getClass().toString(), "Setting theme according to time.");
-					// Let onCreate() change the theme from now on unless changed by user.
-					shouldThemeBeSet = true;
-					recreate();
-				} else if (chosenTheme == 3) {
-					// Log.e(this.getClass().toString(), "Setting theme to system default.");
-					shouldThemeBeSet = false;
-					AppCompatDelegate
-							.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-				}
-			}
+		alb.setSingleChoiceItems(items, currentTheme, (dialog, which) -> newTheme.set(which));
+
+		alb.setPositiveButton(getString(R.string.set_theme), (dialog, which) -> {
+			currentTheme = newTheme.get();
+			changeTheme();
 		});
 
 		alb.show();
 	}
 
-	private void changeTVColor() {
-		handler = new Handler(Looper.getMainLooper()) {
-			@Override
-			public void handleMessage(Message msg) {
-				Bundle b = msg.getData();
-				if (b.getBoolean("CHANGE_COLOR")) {
-					if (colorIsBlack) {
-						reminder.setTextColor(getResources().getColor(R.color.focus_color));
-					} else {
-						reminder.setTextColor(getResources().getColor(R.color.default_color));
-					}
-					colorIsBlack = ! colorIsBlack;
-				}
-			}
-		};
+	//---------------------------------------------------------------------------------------------------------------
 
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Looper.prepare();
-				while (IamAlive) {
-					Message msg = Message.obtain();
-					Bundle data = new Bundle();
-					data.putBoolean("CHANGE_COLOR", true);
-					msg.setData(data);
-					handler.sendMessage(msg);
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+	private void changeTheme() {
+
+		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)
+				.edit()
+				.remove(SHARED_PREF_KEY_THEME)
+				.putInt(SHARED_PREF_KEY_THEME, currentTheme)
+				.commit();
+
+		switch (currentTheme) {
+			case Constants.THEME_LIGHT:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+				break;
+
+			case Constants.THEME_DARK:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				break;
+
+			case Constants.THEME_SYSTEM:
+				AppCompatDelegate
+						.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+				break;
+
+			case Constants.THEME_AUTO_TIME:
+				if (LocalTime.now().isBefore(LocalTime.of(6, 0))
+						|| LocalTime.now().isAfter(LocalTime.of(21, 59))) {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				} else {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 				}
-			}
-		});
-		thread.start();
+				break;
+		}
 	}
+
 }
 

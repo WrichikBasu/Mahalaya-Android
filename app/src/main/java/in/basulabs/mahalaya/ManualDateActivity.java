@@ -2,7 +2,6 @@ package in.basulabs.mahalaya;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
@@ -21,70 +20,115 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 
-import java.util.Calendar;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static in.basulabs.mahalaya.Constants.SHARED_PREF_KEY_THEME;
 
 public class ManualDateActivity extends AppCompatActivity implements View.OnClickListener {
 
-	private static int day, month;
+	/**
+	 * The date chosen by the user. Note that the time has not been chosen yet.
+	 */
+	private LocalDate playbackDate;
 
-	private int chosenTheme;
-
-	private static boolean hasDateBeenPicked = false;
+	/**
+	 * The currently active theme.
+	 * <p>
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
+	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * </p>
+	 *
+	 * @see Constants#THEME_LIGHT
+	 * @see Constants#THEME_DARK
+	 * @see Constants#THEME_SYSTEM
+	 * @see Constants#THEME_AUTO_TIME
+	 */
+	private int currentTheme;
 
 	private DatePicker datePicker;
 
-	private final BroadcastReceiver activityKiller = new BroadcastReceiver() {
+	/**
+	 * Save Instance State key for {@link #playbackDate}.
+	 */
+	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE =
+			"in.basulabs.mahalaya.ManualDateActivity.PLAYBACK_DATE";
+
+	//-----------------------------------------------------------------------------------------------------------
+
+	private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			//Log.e(this.getClass().toString(), "Broadcast received to kill activity.");
-			finish();
+			if (Objects.equals(intent.getAction(), Constants.ACTION_KILL_ALL_UI_ACTIVITIES)) {
+				finish();
+			}
 		}
 	};
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//Log.e(this.getClass().toString(), "Inside onCreate()");
 		setContentView(R.layout.activity_manual_date);
 
 		Toolbar myToolbar = findViewById(R.id.toolbar2);
 		setSupportActionBar(myToolbar);
+		Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
-		Button datePicked = findViewById(R.id.datePicked);
+		Button datePickBtn = findViewById(R.id.datePicked);
 		datePicker = findViewById(R.id.datePicker);
 
-		datePicker.setMinDate(System.currentTimeMillis() - 1000);
+		datePicker.setMinDate(ZonedDateTime.now().toEpochSecond() * 1000);
 
-		Calendar cal = Calendar.getInstance();
-		cal.clear();
-		cal.set(Calendar.getInstance().get(Calendar.YEAR), 11, 31);
-		datePicker.setMaxDate(cal.getTimeInMillis());
+		datePickBtn.setOnClickListener(this);
 
-		datePicked.setOnClickListener(this);
-
-		///////////////////////////////////////////////////////////
-		// Register the broadcast receiver
-		//////////////////////////////////////////////////////////
 		IntentFilter intentFilter = new IntentFilter(Constants.ACTION_KILL_ALL_UI_ACTIVITIES);
-		registerReceiver(activityKiller, intentFilter);
+		registerReceiver(broadcastReceiver, intentFilter);
+
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
+				Constants.THEME_AUTO_TIME;
+
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
+				defaultTheme);
+
+		if (savedInstanceState == null) {
+			playbackDate = LocalDate.now();
+		} else {
+			playbackDate = (LocalDate) savedInstanceState.getSerializable(SAVE_INSTANCE_KEY_PLAYBACK_DATE);
+		}
 
 	}
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		//Log.e(this.getClass().toString(), "Inside onResume()");
-		if (hasDateBeenPicked && (month != 0) && (day != 0)) {
-			datePicker.updateDate(Calendar.getInstance().get(Calendar.YEAR), month - 1, day);
-		}
+		datePicker.updateDate(playbackDate.getYear(), playbackDate.getMonthValue() - 1, playbackDate.getDayOfMonth());
 	}
+
+	//-----------------------------------------------------------------------------------------------------------
+
+	@Override
+	protected void onSaveInstanceState(@NonNull Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putSerializable(SAVE_INSTANCE_KEY_PLAYBACK_DATE, playbackDate);
+	}
+
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		//Log.e(this.getClass().toString(), "Inside onDestroy()");
-		unregisterReceiver(activityKiller);
+		unregisterReceiver(broadcastReceiver);
 	}
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -92,42 +136,62 @@ public class ManualDateActivity extends AppCompatActivity implements View.OnClic
 		return true;
 	}
 
+	//-----------------------------------------------------------------------------------------------------------
+
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-		if (item.getItemId() == R.id.action_nightDark) {
-			createThemeDialog();
-			return true;
-		} else if (item.getItemId() == R.id.action_help) {
-			Intent intent = new Intent(this, HelpActivity.class);
-			intent.addCategory(Intent.CATEGORY_DEFAULT);
-			startActivity(intent);
-			return true;
+
+		switch (item.getItemId()) {
+
+			case R.id.action_nightDark:
+				createThemeDialog();
+				return true;
+
+			case R.id.action_help:
+				Intent intent = new Intent(this, HelpActivity.class);
+				intent.addCategory(Intent.CATEGORY_DEFAULT);
+				startActivity(intent);
+				return true;
+
+			case android.R.id.home:
+				onBackPressed();
+				return true;
+
+			default:
+				return super.onOptionsItemSelected(item);
 		}
-		return super.onOptionsItemSelected(item);
 	}
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.datePicked) {
 
-			day = datePicker.getDayOfMonth();
-			month = datePicker.getMonth() + 1;
+			playbackDate = LocalDate.of(datePicker.getYear(), datePicker.getMonth() + 1, datePicker.getDayOfMonth());
 
-			hasDateBeenPicked = true;
+			if (playbackDate.isBefore(LocalDate.now())) {
+				Toast.makeText(getApplicationContext(), "Date is in the past!", Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(getApplicationContext(), getString(R.string.date_success), Toast.LENGTH_SHORT).show();
+				startTimeActivity();
+			}
 
-			Toast.makeText(getApplicationContext(), getString(R.string.date_success),
-					Toast.LENGTH_SHORT).show();
-
-			startTimeManual();
 		}
 	}
 
-	private void startTimeManual() {
+	//-----------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Starts {@link ManualTimeActivity}.
+	 */
+	private void startTimeActivity() {
 		Intent intent = new Intent(this, ManualTimeActivity.class);
-		intent.putExtra("month", month);
-		intent.putExtra("day", day);
+		intent.putExtra(Constants.EXTRA_PLAYBACK_DATE, playbackDate);
 		startActivity(intent);
 	}
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	private void createThemeDialog() {
 		AlertDialog.Builder alb = new AlertDialog.Builder(this);
@@ -135,49 +199,59 @@ public class ManualDateActivity extends AppCompatActivity implements View.OnClic
 		alb.setCancelable(true);
 
 		String[] items;
-
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 			items = new String[]{getString(R.string.light), getString(R.string.dark),
-					getString(R.string.system)};
+					getString(R.string.time), getString(R.string.system)};
 		} else {
-			items = new String[]{getString(R.string.light), getString(R.string.dark)};
+			items = new String[]{getString(R.string.light), getString(R.string.dark),
+					getString(R.string.time)};
 		}
 
-		int checkedItem = 0;
+		AtomicInteger newTheme = new AtomicInteger(currentTheme);
 
-		if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
-			//Log.e(this.getClass().toString(), "App night mode active.");
-			checkedItem = 1;
-		} else if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_NO) {
-			//Log.e(this.getClass().toString(), "App night mode inactive.");
-			checkedItem = 0;
-		} else if (AppCompatDelegate
-				.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
-			checkedItem = 2;
-		}
+		alb.setSingleChoiceItems(items, currentTheme, (dialog, which) -> newTheme.set(which));
 
-		alb.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				chosenTheme = which;
-			}
-		});
-
-		alb.setPositiveButton(getString(R.string.set_theme), new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				if (chosenTheme == 0) {
-					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-				} else if (chosenTheme == 1) {
-					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-				} else if (chosenTheme == 2) {
-					AppCompatDelegate
-							.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-				}
-			}
+		alb.setPositiveButton(getString(R.string.set_theme), (dialog, which) -> {
+			currentTheme = newTheme.get();
+			changeTheme();
 		});
 
 		alb.show();
+	}
+
+	//---------------------------------------------------------------------------------------------------------------
+
+	private void changeTheme() {
+
+		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)
+				.edit()
+				.remove(SHARED_PREF_KEY_THEME)
+				.putInt(SHARED_PREF_KEY_THEME, currentTheme)
+				.commit();
+
+		switch (currentTheme) {
+			case Constants.THEME_LIGHT:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+				break;
+
+			case Constants.THEME_DARK:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				break;
+
+			case Constants.THEME_SYSTEM:
+				AppCompatDelegate
+						.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+				break;
+
+			case Constants.THEME_AUTO_TIME:
+				if (LocalTime.now().isBefore(LocalTime.of(6, 0))
+						|| LocalTime.now().isAfter(LocalTime.of(21, 59))) {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				} else {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+				}
+				break;
+		}
 	}
 
 }

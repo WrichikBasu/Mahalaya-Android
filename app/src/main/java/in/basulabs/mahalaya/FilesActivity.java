@@ -1,6 +1,5 @@
 package in.basulabs.mahalaya;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -18,24 +17,62 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
-import java.util.Calendar;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static in.basulabs.mahalaya.Constants.SHARED_PREF_KEY_THEME;
 
 public class FilesActivity extends AppCompatActivity
 		implements View.OnClickListener, AlertDialogBox.AlertDialogListener {
 
-	private static Uri media_uri;
-
-	private static int month, day, hour, minute;
-
-	private final int GET_FILE = 10;
-
-	private Button startProg_btn;
-
-	private int chosenTheme;
-
+	private Button startProgramBtn;
 	private TextView showSelectedFile;
+
+	/**
+	 * The {@link Uri} of the media file chosen by the user.
+	 */
+	private Uri media_uri;
+
+	/**
+	 * The date and time at which the media will be played.
+	 */
+	private LocalDateTime playbackDateTime;
+
+	/**
+	 * Request code for letting the user choose a document.
+	 */
+	private final int FILE_REQUEST_CODE = 480;
+
+	/**
+	 * The currently active theme.
+	 * <p>
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
+	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * </p>
+	 *
+	 * @see Constants#THEME_LIGHT
+	 * @see Constants#THEME_DARK
+	 * @see Constants#THEME_SYSTEM
+	 * @see Constants#THEME_AUTO_TIME
+	 */
+	private int currentTheme;
+
+	/**
+	 * Save Instance State key for {@link #playbackDateTime}.
+	 */
+	private static final String SAVE_INSTANCE_KEY_DATE_TIME = "in.basulabs.mahalaya.FilesActivity.DATE_TIME";
+
+	/**
+	 * Save instance state key for {@link #media_uri}.
+	 */
+	private static final String SAVE_INSTANCE_KEY_MEDIA_URI = "in.basulabs.mahalaya.FilesActivity.MEDIA_URI";
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,16 +82,10 @@ public class FilesActivity extends AppCompatActivity
 
 		Toolbar myToolbar = findViewById(R.id.toolbar4);
 		setSupportActionBar(myToolbar);
-
-		Bundle extras = getIntent().getExtras();
-		assert extras != null;
-		month = extras.getInt("month");
-		day = extras.getInt("day");
-		hour = extras.getInt("hour");
-		minute = extras.getInt("minute");
+		Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
 		Button getFile_btn = findViewById(R.id.get_file_btn);
-		startProg_btn = findViewById(R.id.startProg);
+		startProgramBtn = findViewById(R.id.startProg);
 		showSelectedFile = findViewById(R.id.showSelectedFile);
 		Button mp4 = findViewById(R.id.mp4_dwnld_button);
 		Button mp3 = findViewById(R.id.mp3_dwnld_button);
@@ -62,22 +93,56 @@ public class FilesActivity extends AppCompatActivity
 		mp4.setOnClickListener(this);
 		mp3.setOnClickListener(this);
 		getFile_btn.setOnClickListener(this);
-		startProg_btn.setOnClickListener(this);
+		startProgramBtn.setOnClickListener(this);
+
+		if (savedInstanceState == null) {
+			playbackDateTime = (LocalDateTime) Objects.requireNonNull(getIntent().getExtras())
+					.getSerializable(Constants.EXTRA_PLAYBACK_DATE_TIME);
+		} else {
+			playbackDateTime = (LocalDateTime) savedInstanceState.getSerializable(SAVE_INSTANCE_KEY_DATE_TIME);
+			media_uri = savedInstanceState.getParcelable(SAVE_INSTANCE_KEY_MEDIA_URI);
+		}
+
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
+				Constants.THEME_AUTO_TIME;
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
+				defaultTheme);
+
 	}
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 		if (media_uri == null) {
-			//Log.e(this.getClass().toString(), "Null uri.");
-			startProg_btn.setEnabled(false);
+			startProgramBtn.setEnabled(false);
 		} else {
-			//Log.e(this.getClass().toString(), media_uri.toString());
 			showSelectedFile.setText(media_uri.getPath());
-			startProg_btn.setEnabled(true);
+			startProgramBtn.setEnabled(true);
 		}
 	}
 
+	//-----------------------------------------------------------------------------------------------------------
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		if (! isChangingConfigurations()) {
+			media_uri = null;
+		}
+	}
+
+	//-----------------------------------------------------------------------------------------------------------
+
+	@Override
+	protected void onSaveInstanceState(@NonNull Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putSerializable(SAVE_INSTANCE_KEY_DATE_TIME, playbackDateTime);
+		outState.putParcelable(SAVE_INSTANCE_KEY_MEDIA_URI, media_uri);
+	}
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -85,19 +150,33 @@ public class FilesActivity extends AppCompatActivity
 		return true;
 	}
 
+	//-----------------------------------------------------------------------------------------------------------
+
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-		if (item.getItemId() == R.id.action_nightDark) {
-			createThemeDialog();
-			return true;
-		} else if (item.getItemId() == R.id.action_help) {
-			Intent intent = new Intent(this, HelpActivity.class);
-			intent.addCategory(Intent.CATEGORY_DEFAULT);
-			startActivity(intent);
-			return true;
+
+		switch (item.getItemId()){
+
+			case R.id.action_nightDark:
+				createThemeDialog();
+				return true;
+
+			case R.id.action_help:
+				Intent intent = new Intent(this, HelpActivity.class);
+				intent.addCategory(Intent.CATEGORY_DEFAULT);
+				startActivity(intent);
+				return true;
+
+			case android.R.id.home:
+				onBackPressed();
+				return true;
+
+			default:
+				return super.onOptionsItemSelected(item);
 		}
-		return super.onOptionsItemSelected(item);
 	}
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	/**
 	 * Opens the file browser and lets the user select an mp4 file.
@@ -110,21 +189,25 @@ public class FilesActivity extends AppCompatActivity
 		intent.setType("*/*");
 		String[] mimeTypes = new String[]{"audio/mpeg", "video/mp4"};
 		intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-		startActivityForResult(intent, GET_FILE);
+		startActivityForResult(intent, FILE_REQUEST_CODE);
 	}
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
 		super.onActivityResult(requestCode, resultCode, resultData);
-		if (requestCode == GET_FILE && resultCode == AppCompatActivity.RESULT_OK) {
+		if (requestCode == FILE_REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
 			// The resultData contains a URI for the document or directory that the user selected.
 			media_uri = resultData.getData();
 			//Log.e("DateTimeActivity", "Received Uri: " + media_uri.toString());
 			assert media_uri != null;
 			showSelectedFile.setText(media_uri.getPath());
-			startProg_btn.setEnabled(true);
+			startProgramBtn.setEnabled(true);
 		}
 	}
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	public void onClick(View v) {
@@ -156,6 +239,8 @@ public class FilesActivity extends AppCompatActivity
 		}
 	}
 
+	//-----------------------------------------------------------------------------------------------------------
+
 	/**
 	 * Displays the alert dialog box.
 	 */
@@ -164,9 +249,11 @@ public class FilesActivity extends AppCompatActivity
 		dialog.show(getSupportFragmentManager(), "AlertDialogBox");
 	}
 
+	//-----------------------------------------------------------------------------------------------------------
+
 	@Override
 	public void onDialogPositiveClick(DialogFragment dialogFragment) {
-		if (! isDateOK()) {
+		if (! playbackDateTime.isAfter(LocalDateTime.now())) {
 			Toast.makeText(getApplicationContext(), getString(R.string.past_time),
 					Toast.LENGTH_LONG).show();
 		} else {
@@ -174,11 +261,15 @@ public class FilesActivity extends AppCompatActivity
 		}
 	}
 
+	//-----------------------------------------------------------------------------------------------------------
+
 	@Override
 	public void onDialogNegativeClick(DialogFragment dialogFragment) {
 		Toast.makeText(getApplicationContext(), getString(R.string.execution_cancel),
 				Toast.LENGTH_LONG).show();
 	}
+
+	//-----------------------------------------------------------------------------------------------------------
 
 	private void startProgram() {
 		Intent killActivities = new Intent();
@@ -186,36 +277,17 @@ public class FilesActivity extends AppCompatActivity
 		sendBroadcast(killActivities);
 
 		Intent intent = new Intent(this, MahalayaService.class);
-		intent.putExtra("month", month);
-		intent.putExtra("day", day);
-		intent.putExtra("hour", hour);
-		intent.putExtra("minute", minute);
-		intent.putExtra("fileUri", media_uri);
+		intent.putExtra(Constants.EXTRA_PLAYBACK_DATE_TIME, playbackDateTime);
 		intent.setData(media_uri);
 		intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 		intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 		intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-		startService(intent);
+		ContextCompat.startForegroundService(this, intent);
 
-		this.finish();
-
-
+		finish();
 	}
 
-	/**
-	 * Checks whether the date and time the user has entered is in the past, or in future.
-	 *
-	 * @return {@code true} if date and time is in future, otherwise {@code false}.
-	 */
-	private boolean isDateOK() {
-		Calendar cal = Calendar.getInstance();
-		if (month == cal.get(Calendar.MONTH) + 1 && day == cal.get(Calendar.DAY_OF_MONTH)) {
-			int time_now = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
-			int time_inp = minute + hour * 60;
-			return time_inp > time_now;
-		}
-		return true;
-	}
+	//-----------------------------------------------------------------------------------------------------------
 
 	private void createThemeDialog() {
 		AlertDialog.Builder alb = new AlertDialog.Builder(this);
@@ -223,48 +295,58 @@ public class FilesActivity extends AppCompatActivity
 		alb.setCancelable(true);
 
 		String[] items;
-
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 			items = new String[]{getString(R.string.light), getString(R.string.dark),
-					getString(R.string.system)};
+					getString(R.string.time), getString(R.string.system)};
 		} else {
-			items = new String[]{getString(R.string.light), getString(R.string.dark)};
+			items = new String[]{getString(R.string.light), getString(R.string.dark),
+					getString(R.string.time)};
 		}
 
-		int checkedItem = 0;
+		AtomicInteger newTheme = new AtomicInteger(currentTheme);
 
-		if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
-			//Log.e(this.getClass().toString(), "App night mode active.");
-			checkedItem = 1;
-		} else if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_NO) {
-			//Log.e(this.getClass().toString(), "App night mode inactive.");
-			checkedItem = 0;
-		} else if (AppCompatDelegate
-				.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
-			checkedItem = 2;
-		}
+		alb.setSingleChoiceItems(items, currentTheme, (dialog, which) -> newTheme.set(which));
 
-		alb.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				chosenTheme = which;
-			}
-		});
-
-		alb.setPositiveButton(getString(R.string.set_theme), new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				if (chosenTheme == 0) {
-					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-				} else if (chosenTheme == 1) {
-					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-				} else if (chosenTheme == 2) {
-					AppCompatDelegate
-							.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-				}
-			}
+		alb.setPositiveButton(getString(R.string.set_theme), (dialog, which) -> {
+			currentTheme = newTheme.get();
+			changeTheme();
 		});
 
 		alb.show();
+	}
+
+	//---------------------------------------------------------------------------------------------------------------
+
+	private void changeTheme() {
+
+		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)
+				.edit()
+				.remove(SHARED_PREF_KEY_THEME)
+				.putInt(SHARED_PREF_KEY_THEME, currentTheme)
+				.commit();
+
+		switch (currentTheme) {
+			case Constants.THEME_LIGHT:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+				break;
+
+			case Constants.THEME_DARK:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				break;
+
+			case Constants.THEME_SYSTEM:
+				AppCompatDelegate
+						.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+				break;
+
+			case Constants.THEME_AUTO_TIME:
+				if (LocalTime.now().isBefore(LocalTime.of(6, 0))
+						|| LocalTime.now().isAfter(LocalTime.of(21, 59))) {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				} else {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+				}
+				break;
+		}
 	}
 }

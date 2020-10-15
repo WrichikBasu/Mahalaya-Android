@@ -12,18 +12,14 @@ public class MainActivity extends AppCompatActivity {
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		//////////////////////////////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////////////////
 		// If the user clicks on the launcher icon while any of the
 		// two foreground services are running, the activity of that
 		// service will be created.
-		//``````````````````````````````````````````````````````````````
-		// MahalayaService.whichServiceIsRunning = 0 => No service is running
-		// MahalayaService.whichServiceIsRunning = 1 => Countdown is running
-		// MahalayaService.whichServiceIsRunning = 2 => Media Player is running
-		//////////////////////////////////////////////////////////////////////////////////////
-		if (MahalayaService.whichServiceIsRunning == 1) {
+		/////////////////////////////////////////////////////////////////////////
+		if (MahalayaService.mode == MahalayaService.MODE_COUNTDOWN) {
 			startCountdownActivity();
-		} else if (MahalayaService.whichServiceIsRunning == 2) {
+		} else if (MahalayaService.mode == MahalayaService.MODE_MEDIA) {
 			startMediaPlayerActivity();
 		} else {
 			createSplashScreen();
@@ -41,18 +37,22 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void startCountdownActivity() {
-		Intent intent = new Intent(this, MahalayaBroadcastReceiver.class);
-		intent.setAction(Constants.ACTION_START_COUNTDOWN_ACT);
-		sendBroadcast(intent);
+		Intent intent = new Intent(this, CountdownActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+		startActivity(intent);
 		//Log.e(this.getClass().toString(), "Activity opened while service is running; sent to Mahalaya Start activity.");
 		this.finish();
 		overridePendingTransition(0, 0);
 	}
 
 	private void startMediaPlayerActivity() {
-		Intent intent = new Intent(this, MahalayaBroadcastReceiver.class);
-		intent.setAction(Constants.ACTION_START_MEDIA_PLAYER_ACT);
-		sendBroadcast(intent);
+		Intent intent = new Intent(this, MediaPlayerActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+		startActivity(intent);
 		//Log.e(this.getClass().toString(), "Activity opened while service is running; sent to Media manage activity.");
 		this.finish();
 		overridePendingTransition(0, 0);

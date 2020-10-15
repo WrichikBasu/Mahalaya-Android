@@ -17,8 +17,10 @@
 
     <ScrollView
         android:id="@+id/how_to_scrollView"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
         android:fitsSystemWindows="false"
         android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"

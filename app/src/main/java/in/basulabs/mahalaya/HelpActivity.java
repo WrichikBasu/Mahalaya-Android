@@ -4,16 +4,21 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import java.util.Objects;
+
 public class HelpActivity extends AppCompatActivity implements View.OnClickListener {
+
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -24,6 +29,7 @@ public class HelpActivity extends AppCompatActivity implements View.OnClickListe
 
 		Toolbar myToolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(myToolbar);
+		Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
 		Button mp4 = findViewById(R.id.mp4_dwnld_button);
 		Button mp3 = findViewById(R.id.mp3_dwnld_button);
@@ -33,6 +39,8 @@ public class HelpActivity extends AppCompatActivity implements View.OnClickListe
 		ScrollView scrollView = findViewById(R.id.how_to_scrollView);
 		scrollView.smoothScrollTo(0, 0);
 	}
+
+	//--------------------------------------------------------------------------------------------------------------
 
 	@Override
 	public void onClick(View v) {
@@ -57,5 +65,18 @@ public class HelpActivity extends AppCompatActivity implements View.OnClickListe
 				startActivity(intent);
 				break;
 		}
+	}
+
+	//-------------------------------------------------------------------------------------------------------------
+
+	@Override
+	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+		if (item.getItemId() == android.R.id.home){
+			onBackPressed();
+			return true;
+		}
+
+		return super.onOptionsItemSelected(item);
 	}
 }

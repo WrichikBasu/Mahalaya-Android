@@ -1,17 +1,12 @@
 package in.basulabs.mahalaya;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.util.Log;
+import android.os.CountDownTimer;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,109 +20,83 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 
-import java.util.Calendar;
+import java.time.LocalTime;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static in.basulabs.mahalaya.Constants.SHARED_PREF_KEY_THEME;
 
 public class MediaPlayerActivity extends AppCompatActivity implements View.OnClickListener {
 
-	private Handler handler;
 	private Button abortBtn;
 	private TextView timeLeftView, currentStateView;
-	@SuppressLint("StaticFieldLeak")
-	private static MediaPlayerActivity myInstance;
 
-	private static int chosenTheme;
-	/////////////////////////////////////////////////////
-	// 0 - Light theme
-	// 1 - Dark Theme
-	// 2 - Set by time
-	// 3 - Set by System (Available on Android Q+)
-	////////////////////////////////////////////////////
+	/**
+	 * The currently active theme.
+	 * <p>
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
+	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * </p>
+	 *
+	 * @see Constants#THEME_LIGHT
+	 * @see Constants#THEME_DARK
+	 * @see Constants#THEME_SYSTEM
+	 * @see Constants#THEME_AUTO_TIME
+	 */
+	private int currentTheme;
 
-	private static boolean shouldThemeBeSet = true;
-	//////////////////////////////////////////////////////////////////////////
-	// Checks whether theme should be set by onCreate().
-	// If the activity is created/recreated due to a theme change by the
-	// theme change dialog box, then (except one case - set by time)
-	// onCreate() should not change theme of the activity.
-	/////////////////////////////////////////////////////////////////////////
+	private CountDownTimer playbackCountDownTimer;
 
+	/**
+	 * Indicates whether this activity is alive or dead.
+	 */
 	public static boolean IamAlive;
-	////////////////////////////////////////////////////////////////////
-	// Carries information whether the activity is visible or not.
-	// This variable is changed by onCreate() and onPause()
-	////////////////////////////////////////////////////////////////////
 
-	private static boolean isThisFirstExecution = true;
-	////////////////////////////////////////////////////////////////////////////////////
-	// If the previous activity is alive when this activity has been started,
-	// then the theme of this activity will be set according to the previous
-	// activity. Once the user closes this activity after first creation,
-	// onPause() will set the theme to "Set by time" (by setting
-	// shouldThemeBeSet = true). However, if the user changes the theme during
-	// first creation itself, then that is respected by changing this flag to
-	// false in the dialog box listener, so that onPause() will no longer change
-	// the theme automatically after first instance of this activity is paused.
-	///////////////////////////////////////////////////////////////////////////////////
+	//--------------------------------------------------------------------------------------------
 
-	private final BroadcastReceiver activityKiller = new BroadcastReceiver() {
+	private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			Log.e(this.getClass().toString(), "Broadcast received to kill activity.");
-			finish();
+
+			switch (Objects.requireNonNull(intent.getAction())) {
+
+				case Constants.ACTION_KILL_MEDIA_ACT:
+					finish();
+					break;
+
+				case Constants.ACTION_PAUSE_PLAYER:
+					currentStateView.setText(getString(R.string.media_paused));
+					if (playbackCountDownTimer != null) { playbackCountDownTimer.cancel(); }
+					break;
+
+				case Constants.ACTION_START_PLAYER:
+					currentStateView.setText(getString(R.string.media_playing));
+					initialiseTimer();
+					playbackCountDownTimer.start();
+					break;
+			}
 		}
 	};
+
+	//--------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.media_palying_activity);
-		Log.e(this.getClass().toString(), "Inside onCreate()");
 
 		Toolbar myToolbar = findViewById(R.id.toolbar6);
 		setSupportActionBar(myToolbar);
 
-		// Attempt to change theme iff CountdownActivity is dead when this activity is created.
-		if (! MahalayaService.countdownActivityIsAlive) {
-			//////////////////////////////////////////////////////////////////
-			// If activity has been (re)created by a theme change from
-			// the theme change dialog box, then do not change theme.
-			// In such a case, shouldThemeBeSet will be false as set by
-			// the dialog box listener.
-			/////////////////////////////////////////////////////////////////
-			if (shouldThemeBeSet) {
-				chosenTheme = 2;
-				isThisFirstExecution = false;
-				if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 6 || Calendar.getInstance()
-						.get(Calendar.HOUR_OF_DAY) >= 22) {
-					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-				} else {
-					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-				}
-			}
-		} else {
-			////////////////////////////////////////////////////////////////////////////////////
-			// If this block is reached, it means that CountdownActivity is alive and the
-			// user is looking at it. So, theme will  be set according to that of
-			// CountdownActivity and later changed to default "Set by time".
-			//
-			// Note:
-			//``````````````````````````````````````````````````````````````````````````
-			// 1. CountdownActivity is dead when this activity is created,
-			// so change the MahalayaService.countdownActivityIsAlive flag to false.
-			//
-			// 2. Do not change theme, but determine current theme.
-			///////////////////////////////////////////////////////////////////////////////////
-			MahalayaService.countdownActivityIsAlive = false;
-			isThisFirstExecution = true;
-			shouldThemeBeSet = false;
-			if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
-				chosenTheme = 1;
-			} else if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_NO) {
-				chosenTheme = 0;
-			} else if (AppCompatDelegate
-					.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
-				chosenTheme = 3;
-			}
+		// Get the theme:
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
+				Constants.THEME_AUTO_TIME;
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
+				defaultTheme);
+
+		// Set the theme:
+		if (savedInstanceState == null) {
+			changeTheme();
 		}
 
 		abortBtn = findViewById(R.id.abort_btn2);
@@ -136,73 +105,96 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 
 		abortBtn.setOnClickListener(this);
 
-		myInstance = this;
-
 		/////////////////////////////////////////////////////////////////////////////////////
 		// Consider the case where the playback is paused. The currentStateView TextView
-		// will show "Paused". Now if the user changes theme, then the activity will be
+		// will show "Paused". Now if the config changes, the activity will be
 		// recreated. But currentStateView and timeLeftView will have default values
 		// as setTimeLeft() works only when the media player is active. Therefore, we
 		// set the views in onCreate() so that the user doesn't see default values.
 		/////////////////////////////////////////////////////////////////////////////////////
 		try {
-			timeLeftView.setText(DurationFinder
-					.getDuration(MahalayaService.getDurationLeft(), 1, getApplicationContext()));
+			timeLeftView.setText(DurationFinder.getDuration(MahalayaService.getDurationLeft(),
+					DurationFinder.TYPE_ACTIVITY, this));
 			if (MahalayaService.mediaPlayer.isPlaying()) {
-				setCurrentState(this.getString(R.string.media_playing));
+				currentStateView.setText(this.getString(R.string.media_playing));
 			} else {
-				setCurrentState(this.getString(R.string.media_paused));
+				currentStateView.setText(this.getString(R.string.media_paused));
 			}
-		} catch (Exception ex) {
-			Log.e(this.getClass().toString(), ex.toString());
+		} catch (Exception ignored) {
 		}
 
-		IntentFilter intentFilter = new IntentFilter(Constants.ACTION_KILL_MEDIA_ACT);
-		registerReceiver(activityKiller, intentFilter);
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(Constants.ACTION_KILL_MEDIA_ACT);
+		intentFilter.addAction(Constants.ACTION_PAUSE_PLAYER);
+		intentFilter.addAction(Constants.ACTION_START_PLAYER);
+		registerReceiver(broadcastReceiver, intentFilter);
 	}
 
+	//--------------------------------------------------------------------------------------------
+
 	@Override
-	protected void onResume() {
-		super.onResume();
+	protected void onStart() {
+		super.onStart();
+
 		IamAlive = true;
-		setTimeLeft();
-		Log.e(this.getClass().toString(), "Inside onResume()");
+
+		if (MahalayaService.mediaPlayer.isPlaying()) {
+			initialiseTimer();
+			playbackCountDownTimer.start();
+		}
 	}
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-		if (isThisFirstExecution && ! isChangingConfigurations()) {
-			Log.e(this.getClass().toString(), "Resetting theme.");
-			shouldThemeBeSet = true;
-			isThisFirstExecution = false;
-		}
-
-		if (isChangingConfigurations()) {
-			Log.e(this.getClass().toString(), "Changing configuration.");
-		}
-		Log.e(this.getClass().toString(), "Inside onPause()");
-	}
+	//-------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onStop() {
 		super.onStop();
+
+		if (playbackCountDownTimer != null) { playbackCountDownTimer.cancel(); }
 		IamAlive = false;
-		Log.e(this.getClass().toString(), "Inside onStop()");
 	}
+
+	//-------------------------------------------------------------------------------------------
+
+	private void initialiseTimer() {
+
+		Context context = this;
+
+		playbackCountDownTimer = new CountDownTimer(MahalayaService.getDurationLeft(), 1000) {
+
+			@Override
+			public void onTick(long millisUntilFinished) {
+				if (MahalayaService.mediaPlayer.isPlaying()) {
+					timeLeftView.setText(DurationFinder.getDuration(millisUntilFinished,
+							DurationFinder.TYPE_ACTIVITY, context));
+				}
+			}
+
+			@Override
+			public void onFinish() {
+				timeLeftView.setText(getString(R.string.playback_complete));
+			}
+		};
+
+	}
+
+	//-------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Log.e(this.getClass().toString(), "Inside onDestroy()");
-		unregisterReceiver(activityKiller);
+		unregisterReceiver(broadcastReceiver);
 	}
+
+	//-------------------------------------------------------------------------------------------
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.toolbar_menu2, menu);
 		return true;
 	}
+
+	//-------------------------------------------------------------------------------------------
 
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -213,6 +205,8 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 		return super.onOptionsItemSelected(item);
 	}
 
+	//-------------------------------------------------------------------------------------------
+
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == abortBtn.getId()) {
@@ -222,109 +216,70 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 		}
 	}
 
-	private void setTimeLeft() {
-		handler = new Handler(Looper.getMainLooper()) {
-			@Override
-			public void handleMessage(Message msg) {
-				Bundle b = msg.getData();
-				timeLeftView.setText(b.getString("TextView"));
-			}
-		};
+	//-------------------------------------------------------------------------------------------
 
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Looper.prepare();
-				Log.e(this.getClass().toString(),
-						"Inside thread: " + Thread.currentThread().getName());
-				try {
-					while (IamAlive) {
-						Message message = Message.obtain();
-						Bundle bundle = new Bundle();
-						if (MahalayaService.mediaPlayer.isPlaying()) {
-							long millis = MahalayaService.getDurationLeft();
-							bundle.putString("TextView",
-									DurationFinder.getDuration(millis, 1, getApplicationContext()));
-							if (millis > 0) {
-								bundle.putString("TextView", DurationFinder
-										.getDuration(millis, 1, getApplicationContext()));
-							} else {
-								bundle.putString("TextView", "Playback complete");
-								message.setData(bundle);
-								handler.sendMessage(message);
-								break;
-							}
-							message.setData(bundle);
-							handler.sendMessage(message);
-							try {
-								Thread.sleep(500);
-							} catch (InterruptedException e) {
-								Log.e(this.getClass().toString(), e.toString());
-							}
-						}
-					}
-				} catch (IllegalStateException e) {
-					Log.e(this.getClass().toString(), e.toString());
-				}
-			}
-		});
-		thread.start();
-	}
-
-	public static void setCurrentState(String str) {
-		myInstance.currentStateView.setText(str);
-	}
-
+	/**
+	 * Creates the theme chooser dialog.
+	 */
 	private void createThemeDialog() {
+
 		AlertDialog.Builder alb = new AlertDialog.Builder(this);
-		alb.setTitle(myInstance.getString(R.string.choose_theme));
+		alb.setTitle(getString(R.string.choose_theme));
 		alb.setCancelable(true);
 
 		String[] items;
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			items = new String[]{myInstance.getString(R.string.light),
-					myInstance.getString(R.string.dark),
-					myInstance.getString(R.string.time), myInstance.getString(R.string.system)};
+			items = new String[]{getString(R.string.light), getString(R.string.dark),
+					getString(R.string.time), getString(R.string.system)};
 		} else {
-			items = new String[]{myInstance.getString(R.string.light),
-					myInstance.getString(R.string.dark),
-					myInstance.getString(R.string.time)};
+			items = new String[]{getString(R.string.light), getString(R.string.dark),
+					getString(R.string.time)};
 		}
 
-		int checkedItem = chosenTheme;
-		alb.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				chosenTheme = which;
-			}
+		AtomicInteger newTheme = new AtomicInteger(currentTheme);
+
+		alb.setSingleChoiceItems(items, currentTheme, (dialog, which) -> newTheme.set(which));
+
+		alb.setPositiveButton(getString(R.string.set_theme), (dialog, which) -> {
+			currentTheme = newTheme.get();
+			changeTheme();
 		});
 
-		alb.setPositiveButton(myInstance.getString(R.string.set_theme),
-				new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						if (isThisFirstExecution) {
-							// User has set theme, so onPause() should no longer change theme.
-							isThisFirstExecution = false;
-						}
-						if (chosenTheme == 0) {
-							AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-							shouldThemeBeSet = false;
-						} else if (chosenTheme == 1) {
-							shouldThemeBeSet = false;
-							AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-						} else if (chosenTheme == 2) {
-							// Let onCreate() change the theme from now on unless changed by user.
-							shouldThemeBeSet = true;
-							recreate();
-						} else if (chosenTheme == 3) {
-							shouldThemeBeSet = false;
-							AppCompatDelegate.setDefaultNightMode(
-									AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-						}
-					}
-				});
-
 		alb.show();
+	}
+
+	//---------------------------------------------------------------------------------------------------------------
+
+	private void changeTheme() {
+
+		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)
+				.edit()
+				.remove(SHARED_PREF_KEY_THEME)
+				.putInt(SHARED_PREF_KEY_THEME, currentTheme)
+				.commit();
+
+		switch (currentTheme) {
+			case Constants.THEME_LIGHT:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+				break;
+
+			case Constants.THEME_DARK:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				break;
+
+			case Constants.THEME_SYSTEM:
+				AppCompatDelegate
+						.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+				break;
+
+			case Constants.THEME_AUTO_TIME:
+				if (LocalTime.now().isBefore(LocalTime.of(6, 0))
+						|| LocalTime.now().isAfter(LocalTime.of(21, 59))) {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				} else {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+				}
+				break;
+		}
 	}
 }

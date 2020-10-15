@@ -2,7 +2,6 @@ package in.basulabs.mahalaya;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
@@ -20,69 +19,125 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 
-import java.util.Calendar;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static in.basulabs.mahalaya.Constants.SHARED_PREF_KEY_THEME;
 
 public class DateTimeActivity extends AppCompatActivity implements View.OnClickListener {
 
-	private static int month, day, hours, minutes;
+	/**
+	 * The date and time when the playback should be started. If no date and time is selected, this will be {@code
+	 * null}.
+	 */
+	private LocalDateTime playbackDateTime;
 
-	private static boolean hasUserPickedValues = false;
+	private Button setTodayBtn, proceedBtn;
 
-	private Button setToday_btn, proceed_btn;
+	/**
+	 * The currently active theme.
+	 * <p>
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
+	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * </p>
+	 *
+	 * @see Constants#THEME_LIGHT
+	 * @see Constants#THEME_DARK
+	 * @see Constants#THEME_SYSTEM
+	 * @see Constants#THEME_AUTO_TIME
+	 */
+	private int currentTheme;
 
-	private int chosenTheme;
+	/**
+	 * Save Instance State key for {@link #playbackDateTime}.
+	 */
+	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME =
+			"in.basulabs.mahalaya.DateTimeActivity.PLAYBACK_DATE_TIME";
 
-	private final BroadcastReceiver activityKiller = new BroadcastReceiver() {
+	//-------------------------------------------------------------------------------------------
+
+	private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			//Log.e(this.getClass().toString(), "Broadcast received to kill activity.");
-			finish();
+			if (Objects.equals(intent.getAction(), Constants.ACTION_KILL_ALL_UI_ACTIVITIES)) {
+				finish();
+			}
 		}
 	};
 
+	//-------------------------------------------------------------------------------------------
+
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
-		//Log.e(this.getClass().toString(), "Created.");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_date_time);
 
 		Toolbar myToolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(myToolbar);
 
-		setToday_btn = findViewById(R.id.btn_today);
+		setTodayBtn = findViewById(R.id.btn_today);
 		Button setTmrw_btn = findViewById(R.id.btn_tmrw);
 		Button setManual_btn = findViewById(R.id.btn_manual);
-		proceed_btn = findViewById(R.id.btn_proceed);
+		proceedBtn = findViewById(R.id.btn_proceed);
 
-
-		setToday_btn.setOnClickListener(this);
+		setTodayBtn.setOnClickListener(this);
 		setTmrw_btn.setOnClickListener(this);
 		setManual_btn.setOnClickListener(this);
-		proceed_btn.setOnClickListener(this);
+		proceedBtn.setOnClickListener(this);
 
-		proceed_btn.setEnabled(false);
+		proceedBtn.setEnabled(false);
 		setTmrw_btn.setEnabled(true);
 		setManual_btn.setEnabled(true);
 
-		///////////////////////////////////////////////////////////
-		// Register the broadcast receiver
-		//////////////////////////////////////////////////////////
 		IntentFilter intentFilter = new IntentFilter(Constants.ACTION_KILL_ALL_UI_ACTIVITIES);
-		registerReceiver(activityKiller, intentFilter);
+		registerReceiver(broadcastReceiver, intentFilter);
+
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
+				Constants.THEME_AUTO_TIME;
+
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
+				defaultTheme);
+
+		if (savedInstanceState == null){
+			playbackDateTime = null;
+		} else {
+			playbackDateTime = (LocalDateTime) savedInstanceState.getSerializable(SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME);
+		}
+
 	}
+
+	//-------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (hasUserPickedValues) {
-			proceed_btn.setEnabled(true);
-		}
-		if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) >= 4) {
-			setToday_btn.setEnabled(false);
+
+		if (playbackDateTime == null) {
+			proceedBtn.setEnabled(false);
 		} else {
-			setToday_btn.setEnabled(true);
+			proceedBtn.setEnabled(true);
+		}
+
+		if (! LocalTime.now().isBefore(LocalTime.of(4, 0))) {
+			setTodayBtn.setEnabled(false);
+		} else {
+			setTodayBtn.setEnabled(true);
 		}
 	}
+
+	//-------------------------------------------------------------------------------------------
+
+	@Override
+	protected void onSaveInstanceState(@NonNull Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putSerializable(SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME, playbackDateTime);
+	}
+
+
+	//-------------------------------------------------------------------------------------------
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -90,84 +145,87 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 		return true;
 	}
 
+	//-------------------------------------------------------------------------------------------
+
 	@Override
 	protected void onPause() {
 		super.onPause();
-		proceed_btn.setEnabled(false);
+		proceedBtn.setEnabled(false);
 	}
+
+	//-------------------------------------------------------------------------------------------
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		unregisterReceiver(activityKiller);
+		unregisterReceiver(broadcastReceiver);
 	}
+
+	//-------------------------------------------------------------------------------------------
 
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-		if (item.getItemId() == R.id.action_nightDark) {
-			createThemeDialog();
-			return true;
-		} else if (item.getItemId() == R.id.action_help) {
-			Intent intent = new Intent(this, HelpActivity.class);
-			startActivity(intent);
-			return true;
+		switch (item.getItemId()) {
+			case R.id.action_nightDark:
+				createThemeDialog();
+				return true;
+			case R.id.action_help:
+				Intent intent = new Intent(this, HelpActivity.class);
+				startActivity(intent);
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
-		return super.onOptionsItemSelected(item);
 	}
 
-	private void startManualDate() {
+	//-------------------------------------------------------------------------------------------
+
+	/**
+	 * Starts {@link ManualDateActivity}.
+	 */
+	private void startManualDateActivity() {
 		Intent intent = new Intent(this, ManualDateActivity.class);
 		startActivity(intent);
 	}
 
+	//-------------------------------------------------------------------------------------------
+
+	/**
+	 * Starts {@link FilesActivity}.
+	 */
 	private void startFileActivity() {
 		Intent intent = new Intent(this, FilesActivity.class);
-		intent.putExtra("month", month);
-		intent.putExtra("day", day);
-		intent.putExtra("hour", hours);
-		intent.putExtra("minute", minutes);
+		intent.putExtra(Constants.EXTRA_PLAYBACK_DATE_TIME, playbackDateTime);
 		startActivity(intent);
 	}
 
+	//-------------------------------------------------------------------------------------------
 
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
 
 			case R.id.btn_today:
-				Calendar cal = Calendar.getInstance();
-
-				month = cal.get(Calendar.MONTH) + 1;
-				day = cal.get(Calendar.DAY_OF_MONTH);
-				hours = 4;
-				minutes = 0;
+				playbackDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(4, 0));
 
 				Toast.makeText(getApplicationContext(), getString(R.string.toast_today),
 						Toast.LENGTH_SHORT).show();
 
-				proceed_btn.setEnabled(true);
-				hasUserPickedValues = true;
+				proceedBtn.setEnabled(true);
 				break;
 
 			case R.id.btn_tmrw:
-				cal = Calendar.getInstance();
-				cal.add(Calendar.DAY_OF_MONTH, 1);
-
-				month = cal.get(Calendar.MONTH) + 1;
-				day = cal.get(Calendar.DAY_OF_MONTH);
-				hours = 4;
-				minutes = 0;
+				playbackDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(4, 0)).plusDays(1);
 
 				Toast.makeText(getApplicationContext(), getString(R.string.toast_tomorrow),
 						Toast.LENGTH_SHORT).show();
 
-				proceed_btn.setEnabled(true);
-				hasUserPickedValues = true;
+				proceedBtn.setEnabled(true);
 				break;
 
 			case R.id.btn_manual:
-				hasUserPickedValues = false;
-				startManualDate();
+				playbackDateTime = null;
+				startManualDateActivity();
 				break;
 
 			case R.id.btn_proceed:
@@ -176,55 +234,70 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 		}
 	}
 
+	//-------------------------------------------------------------------------------------------
+
+	/**
+	 * Creates the theme dialog.
+	 */
 	private void createThemeDialog() {
 		AlertDialog.Builder alb = new AlertDialog.Builder(this);
 		alb.setTitle(getString(R.string.choose_theme));
 		alb.setCancelable(true);
 
 		String[] items;
-
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 			items = new String[]{getString(R.string.light), getString(R.string.dark),
-					getString(R.string.system)};
+					getString(R.string.time), getString(R.string.system)};
 		} else {
-			items = new String[]{getString(R.string.light), getString(R.string.dark)};
+			items = new String[]{getString(R.string.light), getString(R.string.dark),
+					getString(R.string.time)};
 		}
 
-		int checkedItem = 0;
+		AtomicInteger newTheme = new AtomicInteger(currentTheme);
 
-		if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
-			//Log.e(this.getClass().toString(), "App night mode active.");
-			checkedItem = 1;
-		} else if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_NO) {
-			//Log.e(this.getClass().toString(), "App night mode inactive.");
-			checkedItem = 0;
-		} else if (AppCompatDelegate
-				.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
-			checkedItem = 2;
-		}
+		alb.setSingleChoiceItems(items, currentTheme, (dialog, which) -> newTheme.set(which));
 
-		alb.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				chosenTheme = which;
-			}
-		});
-
-		alb.setPositiveButton(getString(R.string.set_theme), new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				if (chosenTheme == 0) {
-					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-				} else if (chosenTheme == 1) {
-					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-				} else if (chosenTheme == 2) {
-					AppCompatDelegate
-							.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-				}
-			}
+		alb.setPositiveButton(getString(R.string.set_theme), (dialog, which) -> {
+			currentTheme = newTheme.get();
+			changeTheme();
 		});
 
 		alb.show();
+	}
+
+	//---------------------------------------------------------------------------------------------------------------
+
+	private void changeTheme() {
+
+		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)
+				.edit()
+				.remove(SHARED_PREF_KEY_THEME)
+				.putInt(SHARED_PREF_KEY_THEME, currentTheme)
+				.commit();
+
+		switch (currentTheme) {
+			case Constants.THEME_LIGHT:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+				break;
+
+			case Constants.THEME_DARK:
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				break;
+
+			case Constants.THEME_SYSTEM:
+				AppCompatDelegate
+						.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+				break;
+
+			case Constants.THEME_AUTO_TIME:
+				if (LocalTime.now().isBefore(LocalTime.of(6, 0))
+						|| LocalTime.now().isAfter(LocalTime.of(21, 59))) {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+				} else {
+					AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+				}
+				break;
+		}
 	}
 
 }

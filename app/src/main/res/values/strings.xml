@@ -39,6 +39,10 @@
     <string name="default_time_left">Calculating…</string>
     <string name="ctda_abort_button">Abort program</string>
 
+    <!-- MahalayaService -->
+    <string name="default_time_left_notif">Calculating time left…</string>
+    <string name="request_focus_notif">Requesting Audio Focus from the system…</string>
+
     <!-- MediaPlayerActivity -->
     <string name="mpa_default_media_state">Determining media state…</string>
     <string name="mpa_abort_button">Abort playing media</string>
@@ -76,7 +80,7 @@
     <string name="media_playing">Media is playing.</string>
     <string name="media_paused">Playback is paused.</string>
     <string name="time_left_notif">Time left: </string>
-    <string name="playback_complete">Playback complete.</string>
+    <string name="playback_complete">Playback complete. Tap to know more.</string>
 
     <!-- Theme -->
     <string name="choose_theme">Choose theme:</string>
