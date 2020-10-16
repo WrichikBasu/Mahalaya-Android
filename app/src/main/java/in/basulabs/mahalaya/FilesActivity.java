@@ -1,9 +1,11 @@
 package in.basulabs.mahalaya;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,7 +33,7 @@ public class FilesActivity extends AppCompatActivity
 		implements View.OnClickListener, AlertDialogBox.AlertDialogListener {
 
 	private Button startProgramBtn;
-	private TextView showSelectedFile;
+	private TextView selectedFileTextView;
 
 	/**
 	 * The {@link Uri} of the media file chosen by the user.
@@ -86,7 +88,7 @@ public class FilesActivity extends AppCompatActivity
 
 		Button getFile_btn = findViewById(R.id.get_file_btn);
 		startProgramBtn = findViewById(R.id.startProg);
-		showSelectedFile = findViewById(R.id.showSelectedFile);
+		selectedFileTextView = findViewById(R.id.showSelectedFile);
 		Button mp4 = findViewById(R.id.mp4_dwnld_button);
 		Button mp3 = findViewById(R.id.mp3_dwnld_button);
 
@@ -115,22 +117,9 @@ public class FilesActivity extends AppCompatActivity
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (media_uri == null) {
-			startProgramBtn.setEnabled(false);
-		} else {
-			showSelectedFile.setText(media_uri.getPath());
-			startProgramBtn.setEnabled(true);
-		}
-	}
 
-	//-----------------------------------------------------------------------------------------------------------
-
-	@Override
-	protected void onStop() {
-		super.onStop();
-		if (! isChangingConfigurations()) {
-			media_uri = null;
-		}
+		startProgramBtn.setEnabled(media_uri != null);
+		showSelectedFileName();
 	}
 
 	//-----------------------------------------------------------------------------------------------------------
@@ -155,7 +144,7 @@ public class FilesActivity extends AppCompatActivity
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-		switch (item.getItemId()){
+		switch (item.getItemId()) {
 
 			case R.id.action_nightDark:
 				createThemeDialog();
@@ -202,8 +191,27 @@ public class FilesActivity extends AppCompatActivity
 			media_uri = resultData.getData();
 			//Log.e("DateTimeActivity", "Received Uri: " + media_uri.toString());
 			assert media_uri != null;
-			showSelectedFile.setText(media_uri.getPath());
+			showSelectedFileName();
 			startProgramBtn.setEnabled(true);
+		}
+	}
+
+	//-----------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Retrieves the file name from {@link #media_uri} and siaplays it.
+	 */
+	private void showSelectedFileName() {
+		if (media_uri != null) {
+			try (Cursor cursor = getContentResolver().query(media_uri, null, null, null, null)) {
+				if (cursor != null) {
+					int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+					cursor.moveToFirst();
+					selectedFileTextView.setText(cursor.getString(nameIndex));
+				}
+			}
+		} else {
+			selectedFileTextView.setText(getString(R.string.default_file));
 		}
 	}
 
