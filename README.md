@@ -15,7 +15,7 @@ Can't get up at 4 AM on the day of Mahalaya? No problem! You have come to the ri
 1. Can be used on any device with Android Lollipop and above.
 
 ## How to use?
-1. Download the latest apk file and install it. (During installation, you might see a warning from Google Play Protect. Please ignore that and do not send this app for scanning.)
+1. [Download](https://github.com/WrichikBasu/Mahalaya-Android/releases/download/v3.0.0/Mahalaya-Android.v3.0.0.apk) the latest apk file and install it. (During installation, you might see a warning from Google Play Protect. Please ignore that and do not send this app for scanning.)
 1. Download the Mahalaya media files (see below). The files can be stored on SD card or internal storage.
 1. Open the app and proceed as directed. When asked, choose the Mahalaya media file that will be played by the app.
 1. Once the program is started, you can see the time left for the playback to start. <b>Do not forget to set a decent media volume.</b>
