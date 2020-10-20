@@ -40,6 +40,7 @@ final class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener
 
 	/**
 	 * Main constructor.
+	 *
 	 * @param context The Context which wants to me to manage audio focus.
 	 */
 	AudioFocusManager(Context context) {
@@ -71,7 +72,7 @@ final class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener
 
 			return audioManager.requestAudioFocus(audioFocusRequest);
 		} else {
-			return audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
+			return audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 		}
 
 	}
@@ -86,7 +87,6 @@ final class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener
 			switch (focusChange) {
 
 				case AudioManager.AUDIOFOCUS_GAIN:
-					//Log.e(this.getClass().toString(), "Focus gained. Starting player...");
 
 					focusAbandoned = false;
 					restartPlayer();
@@ -99,17 +99,14 @@ final class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener
 					break;
 
 				case AudioManager.AUDIOFOCUS_LOSS:
-					//Log.e(this.getClass().toString(), "Focus lost. Player paused.");
 					pausePlayer(true);
 					break;
 
 				case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-					//Log.e(this.getClass().toString(), "Focus loss transient. Player paused.");
 					pausePlayer(false);
 					break;
 
 				case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-					//Log.e(this.getClass().toString(), "Focus loss transient. Player ducked.");
 
 					// Decrease volume:
 					Intent intent3 = new Intent(Constants.ACTION_DECREASE_VOLUME);
@@ -132,7 +129,6 @@ final class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener
 			audioManager.abandonAudioFocus(this);
 		}
 		focusAbandoned = true;
-		//Log.e(this.getClass().toString(), "Focus abandoned.");
 	}
 
 	//------------------------------------------------------------------------------------------
@@ -143,7 +139,6 @@ final class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener
 	 * @param abandonFocus Whether focus should be abandoned. Sent as {@link Constants#EXTRA_ABANDON_FOCUS}.
 	 */
 	private void pausePlayer(boolean abandonFocus) {
-		//Log.e(this.getClass().toString(), "Requesting player to be paused...");
 		Intent intent = new Intent(Constants.ACTION_PAUSE_PLAYER);
 		intent.putExtra(Constants.EXTRA_ABANDON_FOCUS, abandonFocus);
 		context.sendBroadcast(intent);
@@ -155,7 +150,6 @@ final class AudioFocusManager implements AudioManager.OnAudioFocusChangeListener
 	 * (Re)starts the media playback by sending the {@link Constants#ACTION_START_PLAYER} broadcast.
 	 */
 	private void restartPlayer() {
-		//Log.e(this.getClass().toString(), "Requesting player to be restarted...");
 		Intent intent = new Intent(Constants.ACTION_START_PLAYER);
 		context.sendBroadcast(intent);
 	}
