@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -11,6 +13,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -30,7 +35,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static in.basulabs.mahalaya.Constants.SHARED_PREF_KEY_THEME;
 import static in.basulabs.mahalaya.MahalayaService.playbackDateTime;
 
-public class CountdownActivity extends AppCompatActivity implements View.OnClickListener {
+public class CountdownActivity extends AppCompatActivity implements View.OnClickListener,
+		CompoundButton.OnCheckedChangeListener, SeekBar.OnSeekBarChangeListener {
 
 	/**
 	 * The currently active theme.
@@ -64,6 +70,11 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 	 */
 	private CountDownTimer countDownTimer;
 
+	private SeekBar volumeSeekBar;
+	private TextView volumeControlLabel;
+
+	SharedPreferences sharedPreferences;
+
 	//--------------------------------------------------------------------------------------------
 
 	private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
@@ -82,6 +93,8 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.countdown_activity);
 
+		sharedPreferences = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE);
+
 		// Set the action bar:
 		Toolbar myToolbar = findViewById(R.id.toolbar5);
 		setSupportActionBar(myToolbar);
@@ -90,12 +103,31 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
 				Constants.THEME_AUTO_TIME;
 
-		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
-				defaultTheme);
+		currentTheme = sharedPreferences.getInt(SHARED_PREF_KEY_THEME, defaultTheme);
 
 		if (savedInstanceState == null) {
 			changeTheme();
 		}
+
+		// Initialise volume control options:
+
+		CheckBox volumeControlCheckBox = findViewById(R.id.volumeControlCheckBox);
+		volumeSeekBar = findViewById(R.id.playbackVolumeSeekBar);
+		volumeControlLabel = findViewById(R.id.playbackVolumeLabel);
+
+		AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+
+		volumeControlCheckBox
+				.setChecked(sharedPreferences.getBoolean(Constants.SHARED_PREF_KEY_VOL_CTRL_ENABLED, true));
+		volumeSeekBar.setMax(audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+		volumeSeekBar.setProgress(sharedPreferences.getInt(Constants.SHARED_PREF_KEY_VOLUME,
+				audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)));
+
+		volumeControlLabel.setEnabled(volumeControlCheckBox.isChecked());
+		volumeSeekBar.setEnabled(volumeControlCheckBox.isChecked());
+
+		volumeControlCheckBox.setOnCheckedChangeListener(this);
+		volumeSeekBar.setOnSeekBarChangeListener(this);
 
 		int day = playbackDateTime.getDayOfMonth(), month = playbackDateTime.getMonthValue(),
 				year = playbackDateTime.getYear(), hour = playbackDateTime.getHour(),
@@ -258,8 +290,7 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 
 	private void changeTheme() {
 
-		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)
-				.edit()
+		sharedPreferences.edit()
 				.remove(SHARED_PREF_KEY_THEME)
 				.putInt(SHARED_PREF_KEY_THEME, currentTheme)
 				.commit();
@@ -289,5 +320,44 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 		}
 	}
 
+	//-----------------------------------------------------------------------------------------------------------
+
+	@Override
+	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+		volumeControlLabel.setEnabled(isChecked);
+		volumeSeekBar.setEnabled(isChecked);
+
+		sharedPreferences.edit()
+				.remove(Constants.SHARED_PREF_KEY_VOL_CTRL_ENABLED)
+				.putBoolean(Constants.SHARED_PREF_KEY_VOL_CTRL_ENABLED, isChecked)
+				.commit();
+	}
+
+	//----------------------------------------------------------------------------------------------------------
+
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+	}
+
+	//----------------------------------------------------------------------------------------------------------
+
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {
+
+	}
+
+	//-----------------------------------------------------------------------------------------------------
+
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {
+
+		sharedPreferences.edit()
+				.remove(Constants.SHARED_PREF_KEY_VOLUME)
+				.putInt(Constants.SHARED_PREF_KEY_VOLUME, seekBar.getProgress())
+				.commit();
+
+	}
 }
 

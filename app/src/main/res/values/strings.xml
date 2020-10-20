@@ -39,7 +39,6 @@
     <string name="default_time_left">Calculating…</string>
     <string name="ctda_abort_button">Abort program</string>
     <string name="vol_ctrl_label">Volume controls:</string>
-    <string name="vol_ctrl_check_box">Allow this app to change media stream volume</string>
     <string name="set_volume_label">Set playback volume:</string>
     <string name="marquee_volume_reminder">Remember to set a decent media volume!</string>
 
@@ -176,6 +175,7 @@
     <string name="mp3_download">Download media file in mp3 format</string>
 
     <string name="dont_have_file">Links to download the media file:</string>
+    <string name="vol_ctrl_check_box">Allow this app to change media stream volume</string>
 
 
 </resources>

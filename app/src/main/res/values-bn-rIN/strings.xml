@@ -136,4 +136,7 @@
         গেলে উপরের বোতামটি দিয়ে ফাইলটি নির্বাচন করুন। ফাইলটি এসডি কার্ড বা অভ্যন্তরীণ স্টোরেজে রাখা যেতে পারে।</string>
     <string name="default_time_left_notif">অপেক্ষা করুন…</string>
     <string name="request_focus_notif">অপেক্ষা করুন…</string>
+    <string name="vol_ctrl_label">ভলিউম নিয়ন্ত্রণ:</string>
+    <string name="vol_ctrl_check_box">এই অ্যাপ্লিকেশনটিকে মিডিয়া স্ট্রিমের ভলিউম পরিবর্তন করার অনুমতি দিন</string>
+    <string name="set_volume_label">প্লেব্যাক ভলিউম সেট করুন:</string>
 </resources>

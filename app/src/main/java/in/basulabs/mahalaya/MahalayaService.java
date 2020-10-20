@@ -180,6 +180,14 @@ public class MahalayaService extends Service {
 	 */
 	private PendingIntent pendingIntent_pause;
 
+	/**
+	 * The volume of {@link AudioManager#STREAM_MUSIC} before playback started.
+	 * <p>
+	 * If this value is -1, it means that the app has not changed the media stream volume.
+	 * </p>
+	 */
+	private int oldVolume;
+
 	//--------------------------------------------------------------------------------------------
 
 	private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
@@ -189,41 +197,34 @@ public class MahalayaService extends Service {
 			switch (Objects.requireNonNull(intent.getAction())) {
 
 				case Constants.ACTION_START_PLAYER:
-					//Log.e(this.getClass().getSimpleName(), "Broadcast received: Start player.");
 					restartMediaPlayer();
 					break;
 
 				case Constants.ACTION_PAUSE_PLAYER:
 					pauseMediaPlayer(
 							Objects.requireNonNull(intent.getExtras()).getBoolean(Constants.EXTRA_ABANDON_FOCUS));
-					//Log.e(this.getClass().getSimpleName(), "Broadcast received: Pause player.");
 					break;
 
 				case AudioManager.ACTION_AUDIO_BECOMING_NOISY:
-					//Log.e(this.getClass().getSimpleName(), "Broadcast received: Audio becoming noisy");
 					if (mediaPlayer != null && mediaPlayer.isPlaying() && mode == MODE_MEDIA) {
 						pauseMediaPlayer(true);
 					}
 					break;
 
 				case Constants.ACTION_DECREASE_VOLUME:
-					//Log.e(this.getClass().getSimpleName(), "Broadcast received: decrease volume.");
 					mediaPlayer.setVolume(0.2f, 0.2f);
 					break;
 
 				case Constants.ACTION_INCREASE_VOLUME:
-					//Log.e(this.getClass().getSimpleName(), "Broadcast received: increase volume.");
 					mediaPlayer.setVolume(1.0f, 1.0f);
 					break;
 
 				case Intent.ACTION_SCREEN_OFF:
-					//Log.e(this.getClass().getSimpleName(), "Broadcast received: screen OFF.");
 					isScreenOff = true;
 					millisAfterLastNotifUpdate = 0L;
 					break;
 
 				case Intent.ACTION_SCREEN_ON:
-					//Log.e(this.getClass().getSimpleName(), "Broadcast received: screen ON.");
 					isScreenOff = false;
 					millisAfterLastNotifUpdate = 0L;
 					break;
@@ -235,7 +236,6 @@ public class MahalayaService extends Service {
 
 	@Override
 	public void onCreate() {
-		//Log.e(this.getClass().getSimpleName(), "Inside onCreate");
 
 		durgaBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.durga1);
 		audioFocusManager = new AudioFocusManager(this);
@@ -246,7 +246,6 @@ public class MahalayaService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		//Log.e(this.getClass().getSimpleName(), "Inside onStartCommand()");
 
 		createNotificationChannel(MAIN_NOTIFICATION_ID);
 		buildNotificationForCountdown(getString(R.string.default_time_left_notif));
@@ -286,7 +285,6 @@ public class MahalayaService extends Service {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		//Log.e(this.getClass().getSimpleName(), "Inside onDestroy()");
 		mediaPlayer.release();
 		unregisterReceiver(broadcastReceiver);
 		mode = MODE_INACTIVE;
@@ -327,7 +325,6 @@ public class MahalayaService extends Service {
 	 */
 	private void startCountdown() {
 
-		//Log.e(this.getClass().getSimpleName(), "Starting countdown...");
 
 		LocalDateTime currentDateTime = LocalDateTime.now();
 		Duration duration = Duration.between(currentDateTime, playbackDateTime);
@@ -405,7 +402,6 @@ public class MahalayaService extends Service {
 	 * Updates the notification during countdown with time left.
 	 */
 	private void updateNotificationDuringCountdown(String str) {
-		//Log.e(this.getClass().getSimpleName(), "Updating notification (countdown).");
 		buildNotificationForCountdown(getString(R.string.time_left_notif) + " " + str);
 		mNotificationManager.notify(MAIN_NOTIFICATION_ID, notif);
 	}
@@ -417,7 +413,6 @@ public class MahalayaService extends Service {
 	 */
 	private void buildNotificationForMediaPlayer() {
 
-		//Log.e(this.getClass().getSimpleName(), "Building notification for media player.");
 
 		Intent intent_act = new Intent(this, MediaPlayerActivity.class);
 		Intent intent_play = new Intent();
@@ -473,7 +468,6 @@ public class MahalayaService extends Service {
 	 */
 	private void setUpMediaPlayer() {
 
-		//Log.e(this.getClass().getSimpleName(), "Inside setUpMediaPlayer()");
 
 		mode = MODE_MEDIA;
 
@@ -494,7 +488,6 @@ public class MahalayaService extends Service {
 		mediaPlayer.setVolume(1.0f, 1.0f);
 
 		mediaPlayer.setOnPreparedListener(mp -> {
-			//Log.e(this.getClass().getSimpleName(), "Media player prepared.");
 
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 				mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setSpeed(1.0f));
@@ -503,15 +496,12 @@ public class MahalayaService extends Service {
 			int focusRequest = audioFocusManager.requestAudioFocus();
 
 			if (focusRequest == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-				//Log.e(this.getClass().getSimpleName(), "Focus granted.");
 				startMediaPlayer();
 				audioFocusManager.focusAbandoned = false;
 			} else if (focusRequest == AudioManager.AUDIOFOCUS_REQUEST_DELAYED) {
-				//Log.e(this.getClass().getSimpleName(), "Focus delayed.");
 				audioFocusManager.focusDelayed = true;
 				audioFocusManager.focusAbandoned = false;
 			} else {
-				//Log.e(this.getClass().getSimpleName(), "Focus denied. Retrying...");
 				repeatedlyAskForFocus();
 			}
 
@@ -519,9 +509,13 @@ public class MahalayaService extends Service {
 		mediaPlayer.prepareAsync();
 
 		mediaPlayer.setOnCompletionListener(mp -> {
-			//Log.e(this.getClass().getSimpleName(), "Media playback complete.");
 
 			mode = MODE_INACTIVE;
+
+			AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+			if (oldVolume != - 1) {
+				audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, oldVolume, 0);
+			}
 
 			boolean isMediaPlayerActAlive = MediaPlayerActivity.IamAlive;
 
@@ -572,9 +566,20 @@ public class MahalayaService extends Service {
 	 */
 	private void startMediaPlayer() {
 
-		//Log.e(this.getClass().getSimpleName(), "startMediaPlayer() called.");
 
 		buildNotificationForMediaPlayer();
+
+		AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+		SharedPreferences sharedPreferences = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE);
+
+		if (sharedPreferences.getBoolean(Constants.SHARED_PREF_KEY_VOL_CTRL_ENABLED, true)) {
+			oldVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+			audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+					sharedPreferences.getInt(Constants.SHARED_PREF_KEY_VOLUME,
+							audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)), 0);
+		} else {
+			oldVolume = - 1;
+		}
 
 		mediaPlayer.setVolume(1.0f, 1.0f);
 		mediaPlayer.start();
@@ -584,7 +589,6 @@ public class MahalayaService extends Service {
 		// If CountdownActivity is alive, start MediaPlayerActivity
 		if (CountdownActivity.IamAlive) {
 
-			//Log.e(this.getClass().getSimpleName(), "CountdownAct is alive.");
 
 			Intent intent = new Intent();
 			intent.setAction(Constants.ACTION_KILL_COUNTDOWN_ACT);
@@ -618,7 +622,6 @@ public class MahalayaService extends Service {
 		} catch (IllegalStateException ignored) {
 		}
 
-		//Log.e(this.getClass().getSimpleName(), "Player paused.");
 
 		updateNotificationForMediaPlayer(NOTIF_TYPE_PLAY);
 
@@ -635,11 +638,9 @@ public class MahalayaService extends Service {
 	 */
 	private void restartMediaPlayer() {
 
-		//Log.e(this.getClass().getSimpleName(), "Inside restartMediaPlayer()");
 
 		if (audioFocusManager.focusDelayed) {
 
-			//Log.e(this.getClass().getSimpleName(), "Delayed focus gain received.");
 
 			audioFocusManager.focusDelayed = false;
 
@@ -650,13 +651,11 @@ public class MahalayaService extends Service {
 					mediaPlayer.start();
 					mediaPlayer.setVolume(1.0f, 1.0f);
 				} catch (IllegalStateException ignored) {}
-				//Log.e(this.getClass().getSimpleName(), "Media player resumed after delayed focus gain.");
 				updateNotificationForMediaPlayer(NOTIF_TYPE_PAUSE);
 			}
 
 		} else {
 
-			//Log.e(this.getClass().getSimpleName(), "No delayed focus gain.");
 
 			boolean hasFocusBeenReceived;
 
@@ -665,21 +664,18 @@ public class MahalayaService extends Service {
 				switch (audioFocusManager.requestAudioFocus()) {
 
 					case AudioManager.AUDIOFOCUS_REQUEST_GRANTED:
-						//Log.e(this.getClass().getSimpleName(), "Focus received 1");
 						hasFocusBeenReceived = true;
 						audioFocusManager.focusAbandoned = false;
 						audioFocusManager.focusDelayed = false;
 						break;
 
 					case AudioManager.AUDIOFOCUS_REQUEST_DELAYED:
-						//Log.e(this.getClass().getSimpleName(), "Focus received 2");
 						audioFocusManager.focusDelayed = true;
 						audioFocusManager.focusAbandoned = false;
 						hasFocusBeenReceived = false;
 						break;
 
 					default:
-						//Log.e(this.getClass().getSimpleName(), "Focus received 3");
 						audioFocusManager.focusDelayed = false;
 						audioFocusManager.focusAbandoned = true;
 						hasFocusBeenReceived = false;
@@ -694,7 +690,6 @@ public class MahalayaService extends Service {
 					mediaPlayer.start();
 					mediaPlayer.setVolume(1.0f, 1.0f);
 				} catch (IllegalStateException ignored) {}
-				//Log.e(this.getClass().getSimpleName(), "Media player resumed.");
 				updateNotificationForMediaPlayer(NOTIF_TYPE_PAUSE);
 			}
 		}
@@ -728,11 +723,9 @@ public class MahalayaService extends Service {
 		if (code == NOTIF_TYPE_PLAY) {
 			builder.addAction(R.drawable.ic_play, "Play", pendingIntent_play);
 			builder.setContentText(getString(R.string.media_paused));
-			//Log.e(this.getClass().getSimpleName(), "Media player notif changed to play.");
 		} else if (code == NOTIF_TYPE_PAUSE) {
 			builder.setContentText(getString(R.string.media_playing));
 			builder.addAction(R.drawable.ic_pause, "Pause", pendingIntent_pause);
-			//Log.e(this.getClass().getSimpleName(), "Media player notif changed to pause.");
 		}
 		builder.setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
 				.setShowActionsInCompactView(0)
@@ -749,7 +742,6 @@ public class MahalayaService extends Service {
 	 * @return The time left (in milliseconds) for the playback to end.
 	 */
 	public static long getDurationLeft() {
-		//Log.e("MahalayaService", "Calculating time left...");
 		return (mediaPlayer.getDuration() - mediaPlayer.getCurrentPosition());
 	}
 
@@ -783,12 +775,10 @@ public class MahalayaService extends Service {
 						int focusRequest = audioFocusManager.requestAudioFocus();
 
 						if (focusRequest == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-							//Log.e("basulabsMahalayaService", "In handler Focus granted.");
 							startMediaPlayer();
 							audioFocusManager.focusAbandoned = false;
 							hasFocusBeenReceived.set(true);
 						} else if (focusRequest == AudioManager.AUDIOFOCUS_REQUEST_DELAYED) {
-							//Log.e("basulabsMahalayaService", "In handler Focus delayed.");
 							audioFocusManager.focusDelayed = true;
 							audioFocusManager.focusAbandoned = false;
 							hasFocusBeenReceived.set(true);

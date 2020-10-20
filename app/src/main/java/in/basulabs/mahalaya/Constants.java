@@ -105,14 +105,32 @@ final class Constants {
 	static final int THEME_SYSTEM = 3;
 
 	/**
-	 * The {@link android.content.SharedPreferences} file name for this app.
+	 * The SharedPreferences file name for this app.
 	 */
 	static final String SHARED_PREF_FILE = "in.basulabs.mahalaya.SHARED_PREFERENCES";
 
 	/**
-	 * {@link android.content.SharedPreferences} key for the app theme.
+	 * SharedPreferences key for the app theme.
+	 * <p>
+	 * Can have one of the following values: {@link #THEME_LIGHT}, {@link #THEME_DARK}, {@link #THEME_AUTO_TIME} and
+	 * {@link #THEME_SYSTEM}.
+	 * </p>
 	 */
 	static final String SHARED_PREF_KEY_THEME = "in.basulabs.mahalaya.SHARED_PREF_THEME";
+
+	/**
+	 * SharedPreferences key indicating whether volume control is enabled or not. Type: boolean. Default: true.
+	 */
+	static final String SHARED_PREF_KEY_VOL_CTRL_ENABLED =	"in.basulabs.mahalaya.SHARED_PREF_VOL_CTRL_ENABLED";
+
+	/**
+	 * SharedPreferences key for the playback volume. Type: int.
+	 * <p>
+	 * Note that this is not the volume for the {@link android.media.MediaPlayer} (which will be either 1.0f or 0.2f
+	 * when ducked). This volume will be set as the volume for the media stream if volume control is enabled.
+	 * </p>
+	 */
+	static final String SHARED_PREF_KEY_VOLUME = "in.basulabs.mahalaya.SHARED_PREF_VOLUME";
 
 
 }
