@@ -25,3 +25,6 @@ Can't get up at 4 AM on the day of Mahalaya? No problem! You have come to the ri
 Due to the large size, the media files of Mahalaya have not been included with the app. Please download them from Google drive using one of the links below:
 - [mp4 format (153.3 MB)](https://drive.google.com/file/d/1f4RmIt_mErCRMoVGS1ArszBZAHUCcWoN/view?usp=sharing)
 - [mp3 format (197 MB)](https://drive.google.com/file/d/1xGuKpBqPWgjJUkdFUVCgKn3L58ozJbey/view?usp=sharing)
+
+## How to contribute?
+Please read the [guidelines](https://github.com/WrichikBasu/Mahalaya-Android/blob/master/CONTRIBUTING.md) for contributing.
