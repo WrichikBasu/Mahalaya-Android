@@ -1,6 +1,14 @@
 # Mahalaya App
 <i>An innovative and automated way of listening to Mahalaya!</i>
 
+![GitHub All Releases](https://img.shields.io/github/downloads/WrichikBasu/Mahalaya-Android/total)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/WrichikBasu/Mahalaya-Android)](https://github.com/WrichikBasu/Mahalaya-Android/releases/tag/v3.1.0)
+![GitHub Release Date](https://img.shields.io/github/release-date/WrichikBasu/Mahalaya-Android)
+![GitHub](https://img.shields.io/github/license/WrichikBasu/Mahalaya-Android)
+![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/WrichikBasu/Mahalaya-Android)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/WrichikBasu/Mahalaya-Android/master)
+![GitHub top language](https://img.shields.io/github/languages/top/WrichikBasu/Mahalaya-Android)
+
 Can't get up at 4 AM on the day of Mahalaya? No problem! You have come to the right place. This app will allow you to choose a date and time, and will automatically play Mahalaya at that particular time.
 
 ## Salient Features:
