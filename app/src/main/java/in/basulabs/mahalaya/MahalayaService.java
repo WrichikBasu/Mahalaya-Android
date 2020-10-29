@@ -23,6 +23,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -255,6 +256,7 @@ public class MahalayaService extends Service {
 
 		playbackDateTime = (LocalDateTime) Objects.requireNonNull(intent.getExtras())
 				.getSerializable(Constants.EXTRA_PLAYBACK_DATE_TIME);
+		playbackDateTime = playbackDateTime.withSecond(0).withNano(0);
 		media_uri = intent.getData();
 
 		IntentFilter intentFilter = new IntentFilter();
@@ -325,9 +327,14 @@ public class MahalayaService extends Service {
 	 */
 	private void startCountdown() {
 
-
 		LocalDateTime currentDateTime = LocalDateTime.now();
+
+		Log.e(this.getClass().getSimpleName(), "Playback date time: " + playbackDateTime.toString());
+		Log.e(this.getClass().getSimpleName(), "Current date time: " + currentDateTime.toString());
+
 		Duration duration = Duration.between(currentDateTime, playbackDateTime);
+
+		Log.e(this.getClass().getSimpleName(), "Duration: " + duration.toString());
 		Context context = this;
 
 		mode = MODE_COUNTDOWN;
@@ -413,7 +420,6 @@ public class MahalayaService extends Service {
 	 */
 	private void buildNotificationForMediaPlayer() {
 
-
 		Intent intent_act = new Intent(this, MediaPlayerActivity.class);
 		Intent intent_play = new Intent();
 		Intent intent_pause = new Intent();
@@ -467,7 +473,6 @@ public class MahalayaService extends Service {
 	 * </p>
 	 */
 	private void setUpMediaPlayer() {
-
 
 		mode = MODE_MEDIA;
 
@@ -566,7 +571,6 @@ public class MahalayaService extends Service {
 	 */
 	private void startMediaPlayer() {
 
-
 		buildNotificationForMediaPlayer();
 
 		AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
@@ -589,7 +593,6 @@ public class MahalayaService extends Service {
 		// If CountdownActivity is alive, start MediaPlayerActivity
 		if (CountdownActivity.IamAlive) {
 
-
 			Intent intent = new Intent();
 			intent.setAction(Constants.ACTION_KILL_COUNTDOWN_ACT);
 			sendBroadcast(intent);
@@ -599,7 +602,6 @@ public class MahalayaService extends Service {
 			intent_act.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 			intent_act.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 			startActivity(intent_act);
-
 		}
 	}
 
@@ -638,9 +640,7 @@ public class MahalayaService extends Service {
 	 */
 	private void restartMediaPlayer() {
 
-
 		if (audioFocusManager.focusDelayed) {
-
 
 			audioFocusManager.focusDelayed = false;
 
@@ -655,7 +655,6 @@ public class MahalayaService extends Service {
 			}
 
 		} else {
-
 
 			boolean hasFocusBeenReceived;
 
