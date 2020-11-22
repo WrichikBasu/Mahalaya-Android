@@ -2,12 +2,16 @@
 <i>An innovative and automated way of listening to Mahalaya!</i>
 
 ![GitHub All Releases](https://img.shields.io/github/downloads/WrichikBasu/Mahalaya-Android/total)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/WrichikBasu/Mahalaya-Android)](https://github.com/WrichikBasu/Mahalaya-Android/releases)
-![GitHub Release Date](https://img.shields.io/github/release-date/WrichikBasu/Mahalaya-Android)
 ![GitHub](https://img.shields.io/github/license/WrichikBasu/Mahalaya-Android)
 ![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/WrichikBasu/Mahalaya-Android)
+
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/WrichikBasu/Mahalaya-Android)](https://github.com/WrichikBasu/Mahalaya-Android/releases)
+![GitHub Release Date](https://img.shields.io/github/release-date/WrichikBasu/Mahalaya-Android)
+
 ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/WrichikBasu/Mahalaya-Android/master)
-![GitHub top language](https://img.shields.io/github/languages/top/WrichikBasu/Mahalaya-Android)
+
+![Minimum SDK version](https://img.shields.io/badge/minimum%20sdk%20version-Lollipop%20(API%2021)-brightgreen)
+![Target SDK version](https://img.shields.io/badge/target%20sdk%20version-R%20(API%2030)-brightgreen)
 
 Can't get up at 4 AM on the day of Mahalaya? No problem! You have come to the right place. This app will allow you to choose a date and time, and will automatically play Mahalaya at that particular time.
 
@@ -20,7 +24,7 @@ Can't get up at 4 AM on the day of Mahalaya? No problem! You have come to the ri
 1. Uses Java 8 libraries for reducing code complexity.
 1. The Mahalaya media file can be placed either in the external SD card or the internal storage.
 1. Does not use Android `AlarmManager`, so the playback will start under any circumstances (unless, of course, your phone switches off).
-1. The media player is not dependent on UI, so the playback should continue even if your phone hangs.
+1. The media player is not dependent on UI, so the playback should continue even if your phone's UI freezes.
 1. Can be used on any device with Android Lollipop and above.
 
 ## How to use?
