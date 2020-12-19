@@ -27,16 +27,14 @@ Can't get up at 4 AM on the day of Mahalaya? No problem! You have come to the ri
 1. Can be used on any device with Android Lollipop and above.
 
 ## How to download?
-You have two options:
-
-### 1. From Github:
-
-Go to the [release page](https://github.com/WrichikBasu/Mahalaya-Android/releases), download the latest apk and install it.
-
-### 2. From Google Play:
 
 
-<a href='https://play.google.com/store/apps/details?id=in.basulabs.mahalaya&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width=200/></a>
+<a href="https://github.com/WrichikBasu/Mahalaya-Android/releases"><img src="github.png"
+     alt="Download from Github icon"
+     width="200" /></a>
+
+
+<a href='https://play.google.com/store/apps/details?id=in.basulabs.mahalaya'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width=200/></a>
 
 
 ## How to use?
@@ -51,4 +49,14 @@ Due to the large size, the media files of Mahalaya have not been included with t
 - [mp3 format (197 MB)](https://drive.google.com/file/d/1xGuKpBqPWgjJUkdFUVCgKn3L58ozJbey/view?usp=sharing)
 
 ## How to contribute?
-Please read the [guidelines](https://github.com/WrichikBasu/Mahalaya-Android/blob/master/CONTRIBUTING.md) for contributing.
+### Bug reports:
+Please create an issue with as much details as possible. Also look at the [guidelines](https://github.com/WrichikBasu/Mahalaya-Android/blob/master/CONTRIBUTING.md#guidelines-for-creating-an-issue) for creating an issue.
+
+### Ideas/Feature Requests:
+Ideas for improvement and feature requests are always welcome. Please post them in the [Feature requests](https://github.com/WrichikBasu/Mahalaya-Android/discussions/categories/ideas-feature-requests) category under Discussions.
+
+### Questions:
+We will try to answer all questions and help you in using this library. Please post your questions in the [Q&A category](https://github.com/WrichikBasu/Mahalaya-Android/discussions/categories/q-a) under Discussions.
+
+### Forking and Pull Requests:
+I appreciate people forking this repository and putting in their bit to improve it. Please follow the [guidelines](https://github.com/WrichikBasu/Mahalaya-Android/blob/master/CONTRIBUTING.md#guidelines-for-forking-and-creating-pull-requests) for forking and creating pull requests.
