@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 		startActivity(intent);
-		//Log.e(this.getClass().toString(), "Activity opened while service is running; sent to Mahalaya Start activity.");
 		this.finish();
 		overridePendingTransition(0, 0);
 	}
@@ -53,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 		startActivity(intent);
-		//Log.e(this.getClass().toString(), "Activity opened while service is running; sent to Media manage activity.");
 		this.finish();
 		overridePendingTransition(0, 0);
 	}

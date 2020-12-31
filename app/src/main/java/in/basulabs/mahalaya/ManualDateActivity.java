@@ -38,8 +38,7 @@ public class ManualDateActivity extends AppCompatActivity implements View.OnClic
 	/**
 	 * The currently active theme.
 	 * <p>
-	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
-	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
 	 * </p>
 	 *
 	 * @see Constants#THEME_LIGHT
@@ -54,8 +53,7 @@ public class ManualDateActivity extends AppCompatActivity implements View.OnClic
 	/**
 	 * Save Instance State key for {@link #playbackDate}.
 	 */
-	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE =
-			"in.basulabs.mahalaya.ManualDateActivity.PLAYBACK_DATE";
+	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE = "in.basulabs.mahalaya.ManualDateActivity.PLAYBACK_DATE";
 
 	//-----------------------------------------------------------------------------------------------------------
 
@@ -89,11 +87,8 @@ public class ManualDateActivity extends AppCompatActivity implements View.OnClic
 		IntentFilter intentFilter = new IntentFilter(Constants.ACTION_KILL_ALL_UI_ACTIVITIES);
 		registerReceiver(broadcastReceiver, intentFilter);
 
-		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
-				Constants.THEME_AUTO_TIME;
-
-		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
-				defaultTheme);
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM : Constants.THEME_AUTO_TIME;
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME, defaultTheme);
 
 		if (savedInstanceState == null) {
 			playbackDate = LocalDate.now();
@@ -193,6 +188,9 @@ public class ManualDateActivity extends AppCompatActivity implements View.OnClic
 
 	//-----------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Creates the theme chooser dialog.
+	 */
 	private void createThemeDialog() {
 		AlertDialog.Builder alb = new AlertDialog.Builder(this);
 		alb.setTitle(getString(R.string.choose_theme));
@@ -221,6 +219,9 @@ public class ManualDateActivity extends AppCompatActivity implements View.OnClic
 
 	//---------------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Changes the theme of the app, and also updates the theme in {@link android.content.SharedPreferences}.
+	 */
 	private void changeTheme() {
 
 		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)

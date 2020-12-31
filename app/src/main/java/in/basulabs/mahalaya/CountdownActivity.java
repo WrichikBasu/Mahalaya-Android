@@ -41,8 +41,7 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 	/**
 	 * The currently active theme.
 	 * <p>
-	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
-	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
 	 * </p>
 	 *
 	 * @see Constants#THEME_LIGHT
@@ -100,8 +99,7 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 		setSupportActionBar(myToolbar);
 
 		// Set the theme:
-		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
-				Constants.THEME_AUTO_TIME;
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM : Constants.THEME_AUTO_TIME;
 
 		currentTheme = sharedPreferences.getInt(SHARED_PREF_KEY_THEME, defaultTheme);
 
@@ -117,8 +115,7 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 
 		AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
 
-		volumeControlCheckBox
-				.setChecked(sharedPreferences.getBoolean(Constants.SHARED_PREF_KEY_VOL_CTRL_ENABLED, true));
+		volumeControlCheckBox.setChecked(sharedPreferences.getBoolean(Constants.SHARED_PREF_KEY_VOL_CTRL_ENABLED, true));
 		volumeSeekBar.setMax(audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
 		volumeSeekBar.setProgress(sharedPreferences.getInt(Constants.SHARED_PREF_KEY_VOLUME,
 				audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)));
@@ -179,8 +176,7 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 			public void onTick(long millisUntilFinished) {
 
 				// Display time left:
-				timeLeftTextView.setText(DurationFinder.getDuration(millisUntilFinished,
-						DurationFinder.TYPE_ACTIVITY, context));
+				timeLeftTextView.setText(DurationFinder.getDuration(millisUntilFinished, DurationFinder.TYPE_ACTIVITY, context));
 
 				// Change warning colour:
 				if (colorIsNormal) {
@@ -288,6 +284,9 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 
 	//---------------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Changes the theme of the app, and also updates the theme in {@link android.content.SharedPreferences}.
+	 */
 	private void changeTheme() {
 
 		sharedPreferences.edit()
@@ -359,5 +358,6 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 				.commit();
 
 	}
+
 }
 

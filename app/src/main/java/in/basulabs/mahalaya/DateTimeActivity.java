@@ -54,8 +54,7 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 	/**
 	 * Save Instance State key for {@link #playbackDateTime}.
 	 */
-	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME =
-			"in.basulabs.mahalaya.DateTimeActivity.PLAYBACK_DATE_TIME";
+	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME =	"in.basulabs.mahalaya.DateTimeActivity.PLAYBACK_DATE_TIME";
 
 	//-------------------------------------------------------------------------------------------
 
@@ -95,11 +94,9 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 		IntentFilter intentFilter = new IntentFilter(Constants.ACTION_KILL_ALL_UI_ACTIVITIES);
 		registerReceiver(broadcastReceiver, intentFilter);
 
-		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
-				Constants.THEME_AUTO_TIME;
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM : Constants.THEME_AUTO_TIME;
 
-		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
-				defaultTheme);
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,	defaultTheme);
 
 		if (savedInstanceState == null){
 			playbackDateTime = null;
@@ -208,8 +205,7 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 			case R.id.btn_today:
 				playbackDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(4, 0));
 
-				Toast.makeText(getApplicationContext(), getString(R.string.toast_today),
-						Toast.LENGTH_SHORT).show();
+				Toast.makeText(getApplicationContext(), getString(R.string.toast_today), Toast.LENGTH_SHORT).show();
 
 				proceedBtn.setEnabled(true);
 				break;
@@ -217,8 +213,7 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 			case R.id.btn_tmrw:
 				playbackDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(4, 0)).plusDays(1);
 
-				Toast.makeText(getApplicationContext(), getString(R.string.toast_tomorrow),
-						Toast.LENGTH_SHORT).show();
+				Toast.makeText(getApplicationContext(), getString(R.string.toast_tomorrow),	Toast.LENGTH_SHORT).show();
 
 				proceedBtn.setEnabled(true);
 				break;
@@ -237,7 +232,7 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 	//-------------------------------------------------------------------------------------------
 
 	/**
-	 * Creates the theme dialog.
+	 * Creates the theme chooser dialog.
 	 */
 	private void createThemeDialog() {
 		AlertDialog.Builder alb = new AlertDialog.Builder(this);
@@ -267,6 +262,9 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 
 	//---------------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Changes the theme of the app, and also updates the theme in {@link android.content.SharedPreferences}.
+	 */
 	private void changeTheme() {
 
 		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)
@@ -276,6 +274,7 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 				.commit();
 
 		switch (currentTheme) {
+
 			case Constants.THEME_LIGHT:
 				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 				break;
