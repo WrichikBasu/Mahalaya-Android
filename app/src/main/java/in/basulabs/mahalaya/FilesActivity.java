@@ -29,8 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static in.basulabs.mahalaya.Constants.SHARED_PREF_KEY_THEME;
 
-public class FilesActivity extends AppCompatActivity
-		implements View.OnClickListener, AlertDialogBox.AlertDialogListener {
+public class FilesActivity extends AppCompatActivity implements View.OnClickListener, AlertDialogBox.AlertDialogListener {
 
 	private Button startProgramBtn;
 	private TextView selectedFileTextView;
@@ -53,8 +52,7 @@ public class FilesActivity extends AppCompatActivity
 	/**
 	 * The currently active theme.
 	 * <p>
-	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
-	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
 	 * </p>
 	 *
 	 * @see Constants#THEME_LIGHT
@@ -78,7 +76,6 @@ public class FilesActivity extends AppCompatActivity
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
-		//Log.e(this.getClass().toString(), "Created.");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_files);
 
@@ -105,10 +102,8 @@ public class FilesActivity extends AppCompatActivity
 			media_uri = savedInstanceState.getParcelable(SAVE_INSTANCE_KEY_MEDIA_URI);
 		}
 
-		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
-				Constants.THEME_AUTO_TIME;
-		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
-				defaultTheme);
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM : Constants.THEME_AUTO_TIME;
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME, defaultTheme);
 
 	}
 
@@ -189,7 +184,6 @@ public class FilesActivity extends AppCompatActivity
 		if (requestCode == FILE_REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
 			// The resultData contains a URI for the document or directory that the user selected.
 			media_uri = resultData.getData();
-			//Log.e("DateTimeActivity", "Received Uri: " + media_uri.toString());
 			assert media_uri != null;
 			showSelectedFileName();
 			startProgramBtn.setEnabled(true);
@@ -230,8 +224,7 @@ public class FilesActivity extends AppCompatActivity
 				Intent intent = new Intent();
 				intent.setAction(Intent.ACTION_VIEW);
 				intent.addCategory(Intent.CATEGORY_BROWSABLE);
-				intent.setData(Uri.parse(
-						"https://drive.google.com/file/d/1f4RmIt_mErCRMoVGS1ArszBZAHUCcWoN/view?usp=sharing"));
+				intent.setData(Uri.parse("https://drive.google.com/file/d/1f4RmIt_mErCRMoVGS1ArszBZAHUCcWoN/view?usp=sharing"));
 				startActivity(intent);
 				break;
 			}
@@ -262,8 +255,7 @@ public class FilesActivity extends AppCompatActivity
 	@Override
 	public void onDialogPositiveClick(DialogFragment dialogFragment) {
 		if (! playbackDateTime.isAfter(LocalDateTime.now())) {
-			Toast.makeText(getApplicationContext(), getString(R.string.past_time),
-					Toast.LENGTH_LONG).show();
+			Toast.makeText(getApplicationContext(), getString(R.string.past_time), Toast.LENGTH_LONG).show();
 		} else {
 			startProgram();
 		}
@@ -273,8 +265,7 @@ public class FilesActivity extends AppCompatActivity
 
 	@Override
 	public void onDialogNegativeClick(DialogFragment dialogFragment) {
-		Toast.makeText(getApplicationContext(), getString(R.string.execution_cancel),
-				Toast.LENGTH_LONG).show();
+		Toast.makeText(getApplicationContext(), getString(R.string.execution_cancel), Toast.LENGTH_LONG).show();
 	}
 
 	//-----------------------------------------------------------------------------------------------------------
@@ -297,6 +288,9 @@ public class FilesActivity extends AppCompatActivity
 
 	//-----------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Creates the theme chooser dialog.
+	 */
 	private void createThemeDialog() {
 		AlertDialog.Builder alb = new AlertDialog.Builder(this);
 		alb.setTitle(getString(R.string.choose_theme));
@@ -325,6 +319,9 @@ public class FilesActivity extends AppCompatActivity
 
 	//---------------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Changes the theme of the app, and also updates the theme in {@link android.content.SharedPreferences}.
+	 */
 	private void changeTheme() {
 
 		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)
@@ -357,4 +354,5 @@ public class FilesActivity extends AppCompatActivity
 				break;
 		}
 	}
+
 }

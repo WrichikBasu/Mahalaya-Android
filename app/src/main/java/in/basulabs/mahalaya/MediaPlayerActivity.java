@@ -34,8 +34,7 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 	/**
 	 * The currently active theme.
 	 * <p>
-	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
-	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
 	 * </p>
 	 *
 	 * @see Constants#THEME_LIGHT
@@ -66,7 +65,9 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 
 				case Constants.ACTION_PAUSE_PLAYER:
 					currentStateView.setText(getString(R.string.media_paused));
-					if (playbackCountDownTimer != null) { playbackCountDownTimer.cancel(); }
+					if (playbackCountDownTimer != null) {
+						playbackCountDownTimer.cancel();
+					}
 					break;
 
 				case Constants.ACTION_START_PLAYER:
@@ -89,10 +90,8 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 		setSupportActionBar(myToolbar);
 
 		// Get the theme:
-		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
-				Constants.THEME_AUTO_TIME;
-		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
-				defaultTheme);
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM : Constants.THEME_AUTO_TIME;
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME, defaultTheme);
 
 		// Set the theme:
 		if (savedInstanceState == null) {
@@ -150,7 +149,9 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 	protected void onStop() {
 		super.onStop();
 
-		if (playbackCountDownTimer != null) { playbackCountDownTimer.cancel(); }
+		if (playbackCountDownTimer != null) {
+			playbackCountDownTimer.cancel();
+		}
 		IamAlive = false;
 	}
 
@@ -165,8 +166,7 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 			@Override
 			public void onTick(long millisUntilFinished) {
 				if (MahalayaService.mediaPlayer.isPlaying()) {
-					timeLeftView.setText(DurationFinder.getDuration(millisUntilFinished,
-							DurationFinder.TYPE_ACTIVITY, context));
+					timeLeftView.setText(DurationFinder.getDuration(millisUntilFinished, DurationFinder.TYPE_ACTIVITY, context));
 				}
 			}
 
@@ -250,6 +250,9 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 
 	//---------------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Changes the theme of the app, and also updates the theme in {@link android.content.SharedPreferences}.
+	 */
 	private void changeTheme() {
 
 		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)
@@ -282,4 +285,5 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 				break;
 		}
 	}
+
 }

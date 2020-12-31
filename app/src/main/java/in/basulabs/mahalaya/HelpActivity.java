@@ -24,8 +24,7 @@ public class HelpActivity extends AppCompatActivity implements View.OnClickListe
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.help_activity);
 
-		((TextView) findViewById(R.id.how_to_textContent))
-				.setMovementMethod(LinkMovementMethod.getInstance());
+		((TextView) findViewById(R.id.how_to_textContent)).setMovementMethod(LinkMovementMethod.getInstance());
 
 		Toolbar myToolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(myToolbar);
@@ -51,8 +50,7 @@ public class HelpActivity extends AppCompatActivity implements View.OnClickListe
 				intent = new Intent();
 				intent.setAction(Intent.ACTION_VIEW);
 				intent.addCategory(Intent.CATEGORY_BROWSABLE);
-				intent.setData(Uri.parse(
-						"https://drive.google.com/file/d/1f4RmIt_mErCRMoVGS1ArszBZAHUCcWoN/view?usp=sharing"));
+				intent.setData(Uri.parse("https://drive.google.com/file/d/1f4RmIt_mErCRMoVGS1ArszBZAHUCcWoN/view?usp=sharing"));
 				startActivity(intent);
 				break;
 			case R.id.mp3_dwnld_button:
@@ -60,8 +58,7 @@ public class HelpActivity extends AppCompatActivity implements View.OnClickListe
 				intent = new Intent();
 				intent.setAction(Intent.ACTION_VIEW);
 				intent.addCategory(Intent.CATEGORY_BROWSABLE);
-				intent.setData(Uri.parse(
-						"https://drive.google.com/file/d/1xGuKpBqPWgjJUkdFUVCgKn3L58ozJbey/view?usp=sharing"));
+				intent.setData(Uri.parse("https://drive.google.com/file/d/1xGuKpBqPWgjJUkdFUVCgKn3L58ozJbey/view?usp=sharing"));
 				startActivity(intent);
 				break;
 		}

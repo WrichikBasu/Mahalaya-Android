@@ -19,8 +19,7 @@ public class SplashScreenActivity extends AppCompatActivity {
 	/**
 	 * The currently active theme.
 	 * <p>
-	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
-	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
 	 * </p>
 	 *
 	 * @see Constants#THEME_LIGHT
@@ -35,9 +34,8 @@ public class SplashScreenActivity extends AppCompatActivity {
 	/**
 	 * The time (in milliseconds) after which the next activity should be launched.
 	 * <p>
-	 * This variable has to be used with {@link #countDownTimer}. On each tick, the {@code millisUntilFinished} is
-	 * stored in this variable. If the activity is recreated  or paused, then the countdown will start from the left
-	 * over state and not again from the beginning.
+	 * This variable has to be used with {@link #countDownTimer}. On each tick, the {@code millisUntilFinished} is stored in this variable. If the activity is
+	 * recreated  or paused, then the countdown will start from the left over state and not again from the beginning.
 	 * </p>
 	 */
 	private long millisInFuture;
@@ -45,8 +43,7 @@ public class SplashScreenActivity extends AppCompatActivity {
 	/**
 	 * Save instance state key for storing {@link #millisInFuture}.
 	 */
-	private static final String SAVE_INSTANCE_KEY_MILLIS_IN_FUTURE =
-			"in.basulabs.mahalaya.SplashScreenActivity.MILLIS_IN_FUTURE";
+	private static final String SAVE_INSTANCE_KEY_MILLIS_IN_FUTURE = "in.basulabs.mahalaya.SplashScreenActivity.MILLIS_IN_FUTURE";
 
 	//--------------------------------------------------------------------------------------------------------------
 
@@ -56,10 +53,8 @@ public class SplashScreenActivity extends AppCompatActivity {
 		setContentView(R.layout.activity_splash);
 
 		// Get the theme:
-		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
-				Constants.THEME_AUTO_TIME;
-		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
-				defaultTheme);
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :	Constants.THEME_AUTO_TIME;
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,	defaultTheme);
 
 		// Set the theme:
 		if (savedInstanceState == null) {

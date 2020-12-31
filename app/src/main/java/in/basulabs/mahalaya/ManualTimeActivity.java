@@ -38,8 +38,7 @@ public class ManualTimeActivity extends AppCompatActivity implements View.OnClic
 	/**
 	 * The currently active theme.
 	 * <p>
-	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
-	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
 	 * </p>
 	 *
 	 * @see Constants#THEME_LIGHT
@@ -54,8 +53,7 @@ public class ManualTimeActivity extends AppCompatActivity implements View.OnClic
 	/**
 	 * Save Instance State key for {@link #playbackDateTime}.
 	 */
-	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME =
-			"in.basulabs.mahalaya.ManualTimeActivity.PLAYBACK_DATE_TIME";
+	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME =	"in.basulabs.mahalaya.ManualTimeActivity.PLAYBACK_DATE_TIME";
 
 	//-----------------------------------------------------------------------------------------------------------
 
@@ -86,11 +84,9 @@ public class ManualTimeActivity extends AppCompatActivity implements View.OnClic
 		IntentFilter intentFilter = new IntentFilter(Constants.ACTION_KILL_ALL_UI_ACTIVITIES);
 		registerReceiver(activityKiller, intentFilter);
 
-		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM :
-				Constants.THEME_AUTO_TIME;
+		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM : Constants.THEME_AUTO_TIME;
 
-		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,
-				defaultTheme);
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME, defaultTheme);
 
 		if (savedInstanceState == null) {
 			playbackDateTime = LocalDateTime.of((LocalDate) Objects.requireNonNull(getIntent().getExtras())
@@ -176,8 +172,7 @@ public class ManualTimeActivity extends AppCompatActivity implements View.OnClic
 			}
 
 			if (! playbackDateTime.isAfter(LocalDateTime.now())) {
-				Toast.makeText(getApplicationContext(), getString(R.string.past_time),
-						Toast.LENGTH_LONG).show();
+				Toast.makeText(getApplicationContext(), getString(R.string.past_time), Toast.LENGTH_LONG).show();
 			} else {
 				Toast.makeText(getApplicationContext(), getString(R.string.time_success), Toast.LENGTH_SHORT).show();
 				startFileActivity();
@@ -230,6 +225,9 @@ public class ManualTimeActivity extends AppCompatActivity implements View.OnClic
 
 	//---------------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Changes the theme of the app, and also updates the theme in {@link android.content.SharedPreferences}.
+	 */
 	private void changeTheme() {
 
 		getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE)
@@ -262,4 +260,5 @@ public class ManualTimeActivity extends AppCompatActivity implements View.OnClic
 				break;
 		}
 	}
+
 }
