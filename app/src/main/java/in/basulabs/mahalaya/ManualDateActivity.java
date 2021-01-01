@@ -136,25 +136,25 @@ public class ManualDateActivity extends AppCompatActivity implements View.OnClic
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-		switch (item.getItemId()) {
+		if (item.getItemId() == R.id.action_nightDark) {
 
-			case R.id.action_nightDark:
-				createThemeDialog();
-				return true;
+			createThemeDialog();
+			return true;
 
-			case R.id.action_help:
-				Intent intent = new Intent(this, HelpActivity.class);
-				intent.addCategory(Intent.CATEGORY_DEFAULT);
-				startActivity(intent);
-				return true;
+		} else if (item.getItemId() == R.id.action_help) {
 
-			case android.R.id.home:
-				onBackPressed();
-				return true;
+			Intent intent = new Intent(this, HelpActivity.class)
+					.addCategory(Intent.CATEGORY_DEFAULT);
+			startActivity(intent);
+			return true;
 
-			default:
-				return super.onOptionsItemSelected(item);
+		} else if (item.getItemId() == android.R.id.home) {
+
+			onBackPressed();
+			return true;
 		}
+
+		return super.onOptionsItemSelected(item);
 	}
 
 	//-----------------------------------------------------------------------------------------------------------

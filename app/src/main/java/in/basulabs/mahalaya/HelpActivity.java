@@ -42,25 +42,24 @@ public class HelpActivity extends AppCompatActivity implements View.OnClickListe
 	//--------------------------------------------------------------------------------------------------------------
 
 	@Override
-	public void onClick(View v) {
-		Intent intent;
-		switch (v.getId()) {
-			case R.id.mp4_dwnld_button:
-				//Log.e(this.getClass().toString(), "mp4 download requested.");
-				intent = new Intent();
-				intent.setAction(Intent.ACTION_VIEW);
-				intent.addCategory(Intent.CATEGORY_BROWSABLE);
-				intent.setData(Uri.parse("https://drive.google.com/file/d/1f4RmIt_mErCRMoVGS1ArszBZAHUCcWoN/view?usp=sharing"));
-				startActivity(intent);
-				break;
-			case R.id.mp3_dwnld_button:
-				//Log.e(this.getClass().toString(), "mp3 download requested.");
-				intent = new Intent();
-				intent.setAction(Intent.ACTION_VIEW);
-				intent.addCategory(Intent.CATEGORY_BROWSABLE);
-				intent.setData(Uri.parse("https://drive.google.com/file/d/1xGuKpBqPWgjJUkdFUVCgKn3L58ozJbey/view?usp=sharing"));
-				startActivity(intent);
-				break;
+	public void onClick(View view) {
+
+		if (view.getId() == R.id.mp4_dwnld_button){
+
+			Intent intent = new Intent()
+					.setAction(Intent.ACTION_VIEW)
+					.addCategory(Intent.CATEGORY_BROWSABLE)
+					.setData(Uri.parse("https://drive.google.com/file/d/1f4RmIt_mErCRMoVGS1ArszBZAHUCcWoN/view?usp=sharing"));
+			startActivity(intent);
+
+		} else if (view.getId() == R.id.mp3_dwnld_button){
+
+			Intent intent = new Intent()
+					.setAction(Intent.ACTION_VIEW)
+					.addCategory(Intent.CATEGORY_BROWSABLE)
+					.setData(Uri.parse("https://drive.google.com/file/d/1xGuKpBqPWgjJUkdFUVCgKn3L58ozJbey/view?usp=sharing"));
+			startActivity(intent);
+
 		}
 	}
 

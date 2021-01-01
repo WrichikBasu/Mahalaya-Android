@@ -30,8 +30,7 @@ import static in.basulabs.mahalaya.Constants.SHARED_PREF_KEY_THEME;
 public class DateTimeActivity extends AppCompatActivity implements View.OnClickListener {
 
 	/**
-	 * The date and time when the playback should be started. If no date and time is selected, this will be {@code
-	 * null}.
+	 * The date and time when the playback should be started. If no date and time is selected, this will be {@code null}.
 	 */
 	private LocalDateTime playbackDateTime;
 
@@ -40,8 +39,7 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 	/**
 	 * The currently active theme.
 	 * <p>
-	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link
-	 * Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
+	 * Can have four values: {@link Constants#THEME_LIGHT}, {@link Constants#THEME_DARK}, {@link Constants#THEME_SYSTEM}, {@link Constants#THEME_AUTO_TIME}.
 	 * </p>
 	 *
 	 * @see Constants#THEME_LIGHT
@@ -54,7 +52,7 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 	/**
 	 * Save Instance State key for {@link #playbackDateTime}.
 	 */
-	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME =	"in.basulabs.mahalaya.DateTimeActivity.PLAYBACK_DATE_TIME";
+	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME = "in.basulabs.mahalaya.DateTimeActivity.PLAYBACK_DATE_TIME";
 
 	//-------------------------------------------------------------------------------------------
 
@@ -96,9 +94,9 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 
 		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM : Constants.THEME_AUTO_TIME;
 
-		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME,	defaultTheme);
+		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME, defaultTheme);
 
-		if (savedInstanceState == null){
+		if (savedInstanceState == null) {
 			playbackDateTime = null;
 		} else {
 			playbackDateTime = (LocalDateTime) savedInstanceState.getSerializable(SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME);
@@ -112,17 +110,9 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 	protected void onResume() {
 		super.onResume();
 
-		if (playbackDateTime == null) {
-			proceedBtn.setEnabled(false);
-		} else {
-			proceedBtn.setEnabled(true);
-		}
+		proceedBtn.setEnabled(playbackDateTime != null);
 
-		if (! LocalTime.now().isBefore(LocalTime.of(4, 0))) {
-			setTodayBtn.setEnabled(false);
-		} else {
-			setTodayBtn.setEnabled(true);
-		}
+		setTodayBtn.setEnabled(LocalTime.now().isBefore(LocalTime.of(4, 0)));
 	}
 
 	//-------------------------------------------------------------------------------------------
@@ -162,17 +152,16 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.action_nightDark:
-				createThemeDialog();
-				return true;
-			case R.id.action_help:
-				Intent intent = new Intent(this, HelpActivity.class);
-				startActivity(intent);
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
+
+		if (item.getItemId() == R.id.action_nightDark) {
+			createThemeDialog();
+			return true;
+		} else if (item.getItemId() == R.id.action_help) {
+			Intent intent = new Intent(this, HelpActivity.class);
+			startActivity(intent);
+			return true;
 		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	//-------------------------------------------------------------------------------------------
@@ -199,33 +188,29 @@ public class DateTimeActivity extends AppCompatActivity implements View.OnClickL
 	//-------------------------------------------------------------------------------------------
 
 	@Override
-	public void onClick(View v) {
-		switch (v.getId()) {
+	public void onClick(View view) {
 
-			case R.id.btn_today:
-				playbackDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(4, 0));
+		if (view.getId() == R.id.btn_today) {
 
-				Toast.makeText(getApplicationContext(), getString(R.string.toast_today), Toast.LENGTH_SHORT).show();
+			playbackDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(4, 0));
+			Toast.makeText(getApplicationContext(), getString(R.string.toast_today), Toast.LENGTH_SHORT).show();
+			proceedBtn.setEnabled(true);
 
-				proceedBtn.setEnabled(true);
-				break;
+		} else if (view.getId() == R.id.btn_tmrw) {
 
-			case R.id.btn_tmrw:
-				playbackDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(4, 0)).plusDays(1);
+			playbackDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(4, 0)).plusDays(1);
+			Toast.makeText(getApplicationContext(), getString(R.string.toast_tomorrow), Toast.LENGTH_SHORT).show();
+			proceedBtn.setEnabled(true);
 
-				Toast.makeText(getApplicationContext(), getString(R.string.toast_tomorrow),	Toast.LENGTH_SHORT).show();
+		} else if (view.getId() == R.id.btn_manual) {
 
-				proceedBtn.setEnabled(true);
-				break;
+			playbackDateTime = null;
+			startManualDateActivity();
 
-			case R.id.btn_manual:
-				playbackDateTime = null;
-				startManualDateActivity();
-				break;
+		} else if (view.getId() == R.id.btn_proceed) {
 
-			case R.id.btn_proceed:
-				startFileActivity();
-				break;
+			startFileActivity();
+
 		}
 	}
 

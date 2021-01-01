@@ -53,7 +53,7 @@ public class ManualTimeActivity extends AppCompatActivity implements View.OnClic
 	/**
 	 * Save Instance State key for {@link #playbackDateTime}.
 	 */
-	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME =	"in.basulabs.mahalaya.ManualTimeActivity.PLAYBACK_DATE_TIME";
+	private static final String SAVE_INSTANCE_KEY_PLAYBACK_DATE_TIME = "in.basulabs.mahalaya.ManualTimeActivity.PLAYBACK_DATE_TIME";
 
 	//-----------------------------------------------------------------------------------------------------------
 
@@ -85,7 +85,6 @@ public class ManualTimeActivity extends AppCompatActivity implements View.OnClic
 		registerReceiver(activityKiller, intentFilter);
 
 		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM : Constants.THEME_AUTO_TIME;
-
 		currentTheme = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE).getInt(SHARED_PREF_KEY_THEME, defaultTheme);
 
 		if (savedInstanceState == null) {
@@ -135,32 +134,32 @@ public class ManualTimeActivity extends AppCompatActivity implements View.OnClic
 
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-		switch (item.getItemId()) {
 
-			case R.id.action_nightDark:
-				createThemeDialog();
-				return true;
+		if (item.getItemId() == R.id.action_nightDark) {
 
-			case R.id.action_help:
-				Intent intent = new Intent(this, HelpActivity.class);
-				intent.addCategory(Intent.CATEGORY_DEFAULT);
-				startActivity(intent);
-				return true;
+			createThemeDialog();
+			return true;
 
-			case android.R.id.home:
-				onBackPressed();
-				return true;
+		} else if (item.getItemId() == R.id.action_help) {
 
-			default:
-				return super.onOptionsItemSelected(item);
+			Intent intent = new Intent(this, HelpActivity.class)
+					.addCategory(Intent.CATEGORY_DEFAULT);
+			startActivity(intent);
+			return true;
+
+		} else if (item.getItemId() == android.R.id.home) {
+
+			onBackPressed();
+			return true;
 		}
-
+		return super.onOptionsItemSelected(item);
 	}
 
 	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
 	public void onClick(View v) {
+
 		if (v.getId() == R.id.timePicked) {
 
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -237,6 +236,7 @@ public class ManualTimeActivity extends AppCompatActivity implements View.OnClic
 				.commit();
 
 		switch (currentTheme) {
+
 			case Constants.THEME_LIGHT:
 				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 				break;

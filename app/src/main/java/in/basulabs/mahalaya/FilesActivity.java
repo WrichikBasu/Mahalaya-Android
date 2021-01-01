@@ -139,25 +139,25 @@ public class FilesActivity extends AppCompatActivity implements View.OnClickList
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-		switch (item.getItemId()) {
+		if (item.getItemId() == R.id.action_nightDark) {
 
-			case R.id.action_nightDark:
-				createThemeDialog();
-				return true;
+			createThemeDialog();
+			return true;
 
-			case R.id.action_help:
-				Intent intent = new Intent(this, HelpActivity.class);
-				intent.addCategory(Intent.CATEGORY_DEFAULT);
-				startActivity(intent);
-				return true;
+		} else if (item.getItemId() == R.id.action_help) {
 
-			case android.R.id.home:
-				onBackPressed();
-				return true;
+			Intent intent = new Intent(this, HelpActivity.class)
+					.addCategory(Intent.CATEGORY_DEFAULT);
+			startActivity(intent);
+			return true;
 
-			default:
-				return super.onOptionsItemSelected(item);
+		} else if (item.getItemId() == android.R.id.home) {
+
+			onBackPressed();
+			return true;
+
 		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	//-----------------------------------------------------------------------------------------------------------
@@ -212,32 +212,34 @@ public class FilesActivity extends AppCompatActivity implements View.OnClickList
 	//-----------------------------------------------------------------------------------------------------------
 
 	@Override
-	public void onClick(View v) {
-		switch (v.getId()) {
-			case R.id.get_file_btn:
-				openFile();
-				break;
-			case R.id.startProg:
-				showAlertDialog();
-				break;
-			case R.id.mp4_dwnld_button: {
-				Intent intent = new Intent();
-				intent.setAction(Intent.ACTION_VIEW);
-				intent.addCategory(Intent.CATEGORY_BROWSABLE);
-				intent.setData(Uri.parse("https://drive.google.com/file/d/1f4RmIt_mErCRMoVGS1ArszBZAHUCcWoN/view?usp=sharing"));
-				startActivity(intent);
-				break;
-			}
-			case R.id.mp3_dwnld_button: {
-				Intent intent = new Intent();
-				intent.setAction(Intent.ACTION_VIEW);
-				intent.addCategory(Intent.CATEGORY_BROWSABLE);
-				intent.setData(Uri.parse(
-						"https://drive.google.com/file/d/1xGuKpBqPWgjJUkdFUVCgKn3L58ozJbey/view?usp=sharing"));
-				startActivity(intent);
-				break;
-			}
+	public void onClick(View view) {
+
+		if (view.getId() == R.id.get_file_btn) {
+
+			openFile();
+
+		} else if (view.getId() == R.id.startProg) {
+
+			showAlertDialog();
+
+		} else if (view.getId() == R.id.mp4_dwnld_button) {
+
+			Intent intent = new Intent();
+			intent.setAction(Intent.ACTION_VIEW);
+			intent.addCategory(Intent.CATEGORY_BROWSABLE);
+			intent.setData(Uri.parse("https://drive.google.com/file/d/1f4RmIt_mErCRMoVGS1ArszBZAHUCcWoN/view?usp=sharing"));
+			startActivity(intent);
+
+		} else if (view.getId() == R.id.mp3_dwnld_button) {
+
+			Intent intent = new Intent();
+			intent.setAction(Intent.ACTION_VIEW);
+			intent.addCategory(Intent.CATEGORY_BROWSABLE);
+			intent.setData(Uri.parse("https://drive.google.com/file/d/1xGuKpBqPWgjJUkdFUVCgKn3L58ozJbey/view?usp=sharing"));
+			startActivity(intent);
+
 		}
+
 	}
 
 	//-----------------------------------------------------------------------------------------------------------

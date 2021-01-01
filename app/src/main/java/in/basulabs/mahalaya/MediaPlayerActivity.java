@@ -271,8 +271,7 @@ public class MediaPlayerActivity extends AppCompatActivity implements View.OnCli
 				break;
 
 			case Constants.THEME_SYSTEM:
-				AppCompatDelegate
-						.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+				AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
 				break;
 
 			case Constants.THEME_AUTO_TIME:

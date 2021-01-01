@@ -255,7 +255,7 @@ public class MahalayaService extends Service {
 
 		playbackDateTime = (LocalDateTime) Objects.requireNonNull(intent.getExtras())
 				.getSerializable(Constants.EXTRA_PLAYBACK_DATE_TIME);
-		playbackDateTime = playbackDateTime.withSecond(0).withNano(0);
+		playbackDateTime = Objects.requireNonNull(playbackDateTime, "Playback datetime was null!").withSecond(0).withNano(0);
 		media_uri = intent.getData();
 
 		IntentFilter intentFilter = new IntentFilter();
@@ -495,12 +495,17 @@ public class MahalayaService extends Service {
 			int focusRequest = audioFocusManager.requestAudioFocus();
 
 			if (focusRequest == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+
 				startMediaPlayer();
 				audioFocusManager.focusAbandoned = false;
+
 			} else if (focusRequest == AudioManager.AUDIOFOCUS_REQUEST_DELAYED) {
+
 				audioFocusManager.focusDelayed = true;
 				audioFocusManager.focusAbandoned = false;
+
 			} else {
+
 				repeatedlyAskForFocus();
 			}
 
@@ -518,8 +523,8 @@ public class MahalayaService extends Service {
 
 			boolean isMediaPlayerActAlive = MediaPlayerActivity.IamAlive;
 
-			Intent intent = new Intent();
-			intent.setAction(Constants.ACTION_KILL_MEDIA_ACT);
+			Intent intent = new Intent()
+					.setAction(Constants.ACTION_KILL_MEDIA_ACT);
 			sendBroadcast(intent);
 
 			stopForeground(true);
@@ -571,6 +576,7 @@ public class MahalayaService extends Service {
 		SharedPreferences sharedPreferences = getSharedPreferences(Constants.SHARED_PREF_FILE, MODE_PRIVATE);
 
 		if (sharedPreferences.getBoolean(Constants.SHARED_PREF_KEY_VOL_CTRL_ENABLED, true)) {
+
 			oldVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
 			audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
 					sharedPreferences.getInt(Constants.SHARED_PREF_KEY_VOLUME,
@@ -617,7 +623,6 @@ public class MahalayaService extends Service {
 			mediaPlayer.pause();
 		} catch (IllegalStateException ignored) {
 		}
-
 
 		updateNotificationForMediaPlayer(NOTIF_TYPE_PLAY);
 

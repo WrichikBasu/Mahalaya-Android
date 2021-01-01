@@ -44,6 +44,9 @@ public class ThankYouActivity extends AppCompatActivity {
 
 	}
 
+	/**
+	 * Changes the app theme.
+	 */
 	private void changeTheme() {
 
 		switch (currentTheme) {

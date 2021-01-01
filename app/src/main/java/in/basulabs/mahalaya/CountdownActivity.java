@@ -72,7 +72,7 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 	private SeekBar volumeSeekBar;
 	private TextView volumeControlLabel;
 
-	SharedPreferences sharedPreferences;
+	private SharedPreferences sharedPreferences;
 
 	//--------------------------------------------------------------------------------------------
 
@@ -100,15 +100,12 @@ public class CountdownActivity extends AppCompatActivity implements View.OnClick
 
 		// Set the theme:
 		int defaultTheme = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ? Constants.THEME_SYSTEM : Constants.THEME_AUTO_TIME;
-
 		currentTheme = sharedPreferences.getInt(SHARED_PREF_KEY_THEME, defaultTheme);
-
 		if (savedInstanceState == null) {
 			changeTheme();
 		}
 
 		// Initialise volume control options:
-
 		CheckBox volumeControlCheckBox = findViewById(R.id.volumeControlCheckBox);
 		volumeSeekBar = findViewById(R.id.playbackVolumeSeekBar);
 		volumeControlLabel = findViewById(R.id.playbackVolumeLabel);
