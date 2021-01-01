@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
@@ -23,6 +24,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,6 +36,13 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * The main service that manages the countdown, and then starts and manages the media player.
+ *
+ * <p>
+ * To keep this service alive during countdown, {@link #startForeground(int, Notification)} is called every 5 minutes.
+ * </p>
+ */
 public class MahalayaService extends Service {
 
 	/**
@@ -94,10 +103,9 @@ public class MahalayaService extends Service {
 	/**
 	 * Indicates that the play button should be displayed in the notification.
 	 * <p>
-	 * This constant comes into play when the media is being played by the app ({@link #mode} = {@link #MODE_MEDIA}. It
-	 * indicates that the playback is currently paused, and the "Play" symbol should be displayed in the notification. In
-	 * addition, clicking on the action button should start the media player. This is used by {@link
-	 * #updateNotificationForMediaPlayer(int)}.
+	 * This constant comes into play when the media is being played by the app ({@link #mode} = {@link #MODE_MEDIA}. It indicates that the playback is currently
+	 * paused, and the "Play" symbol should be displayed in the notification. In addition, clicking on the action button should start the media player. This is
+	 * used by {@link #updateNotificationForMediaPlayer(int)}.
 	 * </p>
 	 *
 	 * @see #NOTIF_TYPE_PAUSE
@@ -108,10 +116,9 @@ public class MahalayaService extends Service {
 	/**
 	 * Indicates that the pause button should be displayed in the notification.
 	 * <p>
-	 * This constant comes into play when the media is being played by the app ({@link #mode} = {@link #MODE_MEDIA}. It
-	 * indicates that the playback is currently on, and the "Pause" symbol should be displayed in the notification. In
-	 * addition, clicking on the action button should pause the media player. This is used by {@link
-	 * #updateNotificationForMediaPlayer(int)}.
+	 * This constant comes into play when the media is being played by the app ({@link #mode} = {@link #MODE_MEDIA}. It indicates that the playback is currently
+	 * on, and the "Pause" symbol should be displayed in the notification. In addition, clicking on the action button should pause the media player. This is
+	 * used by {@link #updateNotificationForMediaPlayer(int)}.
 	 * </p>
 	 *
 	 * @see #NOTIF_TYPE_PLAY
@@ -125,21 +132,14 @@ public class MahalayaService extends Service {
 	private boolean hasMediaPlayerStarted;
 
 	/**
-	 * The time (in milliseconds) that has passed after the notification was last update during countdown.
-	 * <p>
-	 * This variable is used to determine how much time has passed since the last time the notification was updated, and is
-	 * used during countdown when the screen is off. Once the screen is turned off, the delay between two consecutive
-	 * notification updates is increased to save battery. When the screen is turned on, this variable is initialised to
-	 * {@code 0L}.
-	 * </p>
+	 * The time (in seconds) that has passed after the last time {@link #startForeground(int, Notification)} was called.
 	 */
-	private long millisAfterLastNotifUpdate;
+	private int secondsAfterLastStart;
 
 	/**
 	 * Indicates whether screen is currently off.
 	 * <p>
-	 * This variable is managed by {@link #broadcastReceiver}. It is {@code true} when the screen is off, and {@code false}
-	 * otherwise.
+	 * This variable is managed by {@link #broadcastReceiver}. It is {@code true} when the screen is off, and {@code false} otherwise.
 	 * <p>
 	 * This is used for setting the delay between two notification updates during countdown.
 	 * </p>
@@ -221,12 +221,10 @@ public class MahalayaService extends Service {
 
 				case Intent.ACTION_SCREEN_OFF:
 					isScreenOff = true;
-					millisAfterLastNotifUpdate = 0L;
 					break;
 
 				case Intent.ACTION_SCREEN_ON:
 					isScreenOff = false;
-					millisAfterLastNotifUpdate = 0L;
 					break;
 			}
 		}
@@ -249,13 +247,12 @@ public class MahalayaService extends Service {
 
 		createNotificationChannel(MAIN_NOTIFICATION_ID);
 		buildNotificationForCountdown(getString(R.string.default_time_left_notif));
-		startForeground(MAIN_NOTIFICATION_ID, notif);
+		startSelfForeground();
 
 		hasMediaPlayerStarted = false;
 
-		playbackDateTime = (LocalDateTime) Objects.requireNonNull(intent.getExtras())
-				.getSerializable(Constants.EXTRA_PLAYBACK_DATE_TIME);
-		playbackDateTime = Objects.requireNonNull(playbackDateTime, "Playback datetime was null!").withSecond(0).withNano(0);
+		playbackDateTime = (LocalDateTime) Objects.requireNonNull(intent.getExtras()).getSerializable(Constants.EXTRA_PLAYBACK_DATE_TIME);
+		playbackDateTime = Objects.requireNonNull(playbackDateTime, "playbackDateTime was null!").withSecond(0).withNano(0);
 		media_uri = intent.getData();
 
 		IntentFilter intentFilter = new IntentFilter();
@@ -266,16 +263,17 @@ public class MahalayaService extends Service {
 		intentFilter.addAction(Constants.ACTION_INCREASE_VOLUME);
 		intentFilter.addAction(Intent.ACTION_SCREEN_ON);
 		intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+
 		registerReceiver(broadcastReceiver, intentFilter);
 
 		startCountdown();
 
 		isScreenOff = false;
 
-		Intent intent1 = new Intent(this, CountdownActivity.class);
-		intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		intent1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-		intent1.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+		Intent intent1 = new Intent(this, CountdownActivity.class)
+				.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+				.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+				.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 		startActivity(intent1);
 
 		return START_NOT_STICKY;
@@ -301,6 +299,16 @@ public class MahalayaService extends Service {
 
 	//--------------------------------------------------------------------------------------------
 
+	private void startSelfForeground() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			startForeground(MAIN_NOTIFICATION_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+		} else {
+			startForeground(MAIN_NOTIFICATION_ID, notif);
+		}
+	}
+
+	//--------------------------------------------------------------------------------------------
+
 	/**
 	 * Builds the notification channel for Android O+.
 	 *
@@ -309,8 +317,7 @@ public class MahalayaService extends Service {
 	private void createNotificationChannel(int NOTIF_ID) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			int importance = NotificationManager.IMPORTANCE_DEFAULT;
-			NotificationChannel channel = new NotificationChannel(Integer.toString(NOTIF_ID),
-					"Mahalaya_notifications", importance);
+			NotificationChannel channel = new NotificationChannel(Integer.toString(NOTIF_ID), "Mahalaya_notifications", importance);
 			NotificationManager notificationManager = getSystemService(NotificationManager.class);
 			channel.setSound(null, null);
 			notificationManager.createNotificationChannel(channel);
@@ -320,8 +327,8 @@ public class MahalayaService extends Service {
 	//--------------------------------------------------------------------------------------------
 
 	/**
-	 * This function does the countdown. It waits for the time to come and starts the media player. In addition, it updates
-	 * the notification with the time left and also sets the time in the CountdownActivity when the latter is alive.
+	 * This function does the countdown. It waits for the time to come and starts the media player. In addition, it updates the notification with the time left
+	 * and also sets the time in the CountdownActivity when the latter is alive.
 	 */
 	private void startCountdown() {
 
@@ -333,26 +340,28 @@ public class MahalayaService extends Service {
 
 		mode = MODE_COUNTDOWN;
 
-		millisAfterLastNotifUpdate = 0L;
+		secondsAfterLastStart = 0;
 
 		//////////////////////////////////////////////////////////////////////////////
-		// When the screen is on, the time left for playback to start is 1s,
-		// but if screen is off, the delay is increased to 2 minutes.
+		// When the screen is off, the notification is not updated.
+		//
+		// In addition, every five minutes, startForeground(...) is called so that
+		// the service is not killed by the system.
 		//////////////////////////////////////////////////////////////////////////////
 		CountDownTimer countDownTimer = new CountDownTimer(duration.toMillis(), 1000) {
 
 			@Override
 			public void onTick(long millisUntilFinished) {
-				if (isScreenOff) {
-					millisAfterLastNotifUpdate += 1000;
-					if (millisAfterLastNotifUpdate >= 120000) {
-						updateNotificationDuringCountdown(DurationFinder.getDuration(millisUntilFinished,
-								DurationFinder.TYPE_NOTIFICATION, context));
-						millisAfterLastNotifUpdate = 0L;
-					}
-				} else {
-					updateNotificationDuringCountdown(DurationFinder.getDuration(millisUntilFinished,
-							DurationFinder.TYPE_NOTIFICATION, context));
+				secondsAfterLastStart++;
+
+				if (! isScreenOff) {
+					updateNotificationDuringCountdown(DurationFinder.getDuration(millisUntilFinished, DurationFinder.TYPE_NOTIFICATION, context));
+				}
+
+				if (secondsAfterLastStart >= 300) {
+					updateNotificationDuringCountdown(DurationFinder.getDuration(millisUntilFinished, DurationFinder.TYPE_NOTIFICATION, context));
+					startSelfForeground();
+					secondsAfterLastStart = 0;
 				}
 			}
 
@@ -380,11 +389,9 @@ public class MahalayaService extends Service {
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 
-		PendingIntent notifyPendingIntent = PendingIntent.getActivity(
-				this, 701, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		PendingIntent notifyPendingIntent = PendingIntent.getActivity(this, 701, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(this,
-				Integer.toString(MAIN_NOTIFICATION_ID))
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Integer.toString(MAIN_NOTIFICATION_ID))
 				.setContentTitle(getString(R.string.app_name))
 				.setContentText(msg)
 				.setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -427,12 +434,9 @@ public class MahalayaService extends Service {
 		intent_act.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		intent_act.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 
-		pendingIntent_activity = PendingIntent.getActivity(this, 5221, intent_act,
-				PendingIntent.FLAG_UPDATE_CURRENT);
-		pendingIntent_play = PendingIntent.getBroadcast(this, 5223, intent_play,
-				PendingIntent.FLAG_CANCEL_CURRENT);
-		pendingIntent_pause = PendingIntent.getBroadcast(this, 5223, intent_pause,
-				PendingIntent.FLAG_CANCEL_CURRENT);
+		pendingIntent_activity = PendingIntent.getActivity(this, 5221, intent_act, PendingIntent.FLAG_UPDATE_CURRENT);
+		pendingIntent_play = PendingIntent.getBroadcast(this, 5223, intent_play, PendingIntent.FLAG_CANCEL_CURRENT);
+		pendingIntent_pause = PendingIntent.getBroadcast(this, 5223, intent_pause, PendingIntent.FLAG_CANCEL_CURRENT);
 
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(),
 				Integer.toString(MAIN_NOTIFICATION_ID))
@@ -459,11 +463,10 @@ public class MahalayaService extends Service {
 	 * <p>
 	 * This function also handles the completion listener of the media player.
 	 * <p>
-	 * To request audio focus, the function calls {@link AudioFocusManager#requestAudioFocus()}. If {@link
-	 * AudioManager#AUDIOFOCUS_REQUEST_GRANTED} is returned, the player is started immediately by calling {@link
-	 * #startMediaPlayer()}. If {@link AudioManager#AUDIOFOCUS_REQUEST_DELAYED} is returned, the media player is started
-	 * later by {@link AudioFocusManager#onAudioFocusChange(int)}. If {@link AudioManager#AUDIOFOCUS_REQUEST_FAILED} is
-	 * returned, the {@link #repeatedlyAskForFocus()} function is invoked.
+	 * To request audio focus, the function calls {@link AudioFocusManager#requestAudioFocus()}. If {@link AudioManager#AUDIOFOCUS_REQUEST_GRANTED} is returned,
+	 * the player is started immediately by calling {@link #startMediaPlayer()}. If {@link AudioManager#AUDIOFOCUS_REQUEST_DELAYED} is returned, the media
+	 * player is started later by {@link AudioFocusManager#onAudioFocusChange(int)}. If {@link AudioManager#AUDIOFOCUS_REQUEST_FAILED} is returned, the {@link
+	 * #repeatedlyAskForFocus()} function is invoked.
 	 * </p>
 	 */
 	private void setUpMediaPlayer() {
@@ -560,12 +563,12 @@ public class MahalayaService extends Service {
 	 * Starts the media player for the first time.
 	 *
 	 * <p>
-	 * This method should be used for starting the media player only the first time, i.e. just after the media player has
-	 * been prepared and ready for starting. For restarting after a pause, use {@link MediaPlayer#start()}.
+	 * This method should be used for starting the media player only the first time, i.e. just after the media player has been prepared and ready for starting.
+	 * For restarting after a pause, use {@link MediaPlayer#start()}.
 	 * <p>
-	 * This function reads the {@link SharedPreferences} of {@link CountdownActivity} and makes necessary changes in the
-	 * {@link SharedPreferences} of {@link MediaPlayerActivity}. If {@link CountdownActivity} is visible on the screen when
-	 * the {@link #mediaPlayer} is being started, this function directly starts {@link MediaPlayerActivity}.
+	 * This function reads the {@link SharedPreferences} of {@link CountdownActivity} and makes necessary changes in the {@link SharedPreferences} of {@link
+	 * MediaPlayerActivity}. If {@link CountdownActivity} is visible on the screen when the {@link #mediaPlayer} is being started, this function directly starts
+	 * {@link MediaPlayerActivity}.
 	 * </p>
 	 */
 	private void startMediaPlayer() {
@@ -593,14 +596,14 @@ public class MahalayaService extends Service {
 		// If CountdownActivity is alive, start MediaPlayerActivity
 		if (CountdownActivity.IamAlive) {
 
-			Intent intent = new Intent();
-			intent.setAction(Constants.ACTION_KILL_COUNTDOWN_ACT);
+			Intent intent = new Intent()
+					.setAction(Constants.ACTION_KILL_COUNTDOWN_ACT);
 			sendBroadcast(intent);
 
-			Intent intent_act = new Intent(this, MediaPlayerActivity.class);
-			intent_act.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			intent_act.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-			intent_act.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+			Intent intent_act = new Intent(this, MediaPlayerActivity.class)
+					.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+					.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+					.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 			startActivity(intent_act);
 		}
 	}
@@ -610,9 +613,8 @@ public class MahalayaService extends Service {
 	/**
 	 * Pauses the media player.
 	 * <p>
-	 * This function pauses the media player, and abandons focus only if asked to do so. Situations when focus should be
-	 * abandoned is when the user themselves pause the player, or when focus is lost for an undefined period ({@link
-	 * AudioManager#AUDIOFOCUS_LOSS}. Otherwise, focus is not abandoned.
+	 * This function pauses the media player, and abandons focus only if asked to do so. Situations when focus should be abandoned is when the user themselves
+	 * pause the player, or when focus is lost for an undefined period ({@link AudioManager#AUDIOFOCUS_LOSS}. Otherwise, focus is not abandoned.
 	 * </p>
 	 *
 	 * @param abandonFocus Whether focus should be abandoned.
@@ -701,17 +703,16 @@ public class MahalayaService extends Service {
 	/**
 	 * Changes the play button to the pause button in the Notification and vice-versa.
 	 * <p>
-	 * Updates the pause/play button in the notification while media is being played. In addition to updating the buttons,
-	 * the associated pending intents are changed as well so as to trigger the correct action.
+	 * Updates the pause/play button in the notification while media is being played. In addition to updating the buttons, the associated pending intents are
+	 * changed as well so as to trigger the correct action.
 	 * </p>
 	 *
-	 * @param code Can have two values: {@link #NOTIF_TYPE_PAUSE} and {@link #NOTIF_TYPE_PLAY}. When it is {@link
-	 *        #NOTIF_TYPE_PLAY}, the play button is set, and when it is {@link #NOTIF_TYPE_PAUSE}, the pause button is set.
+	 * @param code Can have two values: {@link #NOTIF_TYPE_PAUSE} and {@link #NOTIF_TYPE_PLAY}. When it is {@link #NOTIF_TYPE_PLAY}, the play button is set,
+	 * 		and when it is {@link #NOTIF_TYPE_PAUSE}, the pause button is set.
 	 */
 	private void updateNotificationForMediaPlayer(int code) {
 
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(
-				getApplicationContext(), Integer.toString(MAIN_NOTIFICATION_ID))
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), Integer.toString(MAIN_NOTIFICATION_ID))
 				.setContentTitle(getString(R.string.app_name))
 				.setPriority(NotificationCompat.PRIORITY_HIGH)
 				.setSmallIcon(R.drawable.ic_notification)
@@ -753,9 +754,9 @@ public class MahalayaService extends Service {
 	 * <b>Should be called iff the media player has never been started in the past, i.e. when
 	 * {@link #hasMediaPlayerStarted} is {@code false}.</b>
 	 * <p>
-	 * This method is called if audio focus is not granted upon requesting ({@link AudioManager#AUDIOFOCUS_REQUEST_FAILED}.
-	 * The system is requested for a focus change periodically. If {@link AudioManager#AUDIOFOCUS_REQUEST_GRANTED} or {@link
-	 * AudioManager#AUDIOFOCUS_REQUEST_DELAYED} is received, the function stops executing.
+	 * This method is called if audio focus is not granted upon requesting ({@link AudioManager#AUDIOFOCUS_REQUEST_FAILED}. The system is requested for a focus
+	 * change periodically. If {@link AudioManager#AUDIOFOCUS_REQUEST_GRANTED} or {@link AudioManager#AUDIOFOCUS_REQUEST_DELAYED} is received, the function
+	 * stops executing.
 	 * </p>
 	 */
 	private void repeatedlyAskForFocus() {
@@ -770,10 +771,9 @@ public class MahalayaService extends Service {
 				@Override
 				public void handleMessage(@NonNull Message msg) {
 					super.handleMessage(msg);
+
 					if (msg.getData().getBoolean(MESSAGE_KEY_REQUEST_FOCUS, false)) {
-
 						int focusRequest = audioFocusManager.requestAudioFocus();
-
 						if (focusRequest == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
 							startMediaPlayer();
 							audioFocusManager.focusAbandoned = false;
@@ -792,10 +792,7 @@ public class MahalayaService extends Service {
 
 				while (! hasFocusBeenReceived.get()) {
 
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException ignored) {
-					}
+					SystemClock.sleep(2000);
 
 					Message message = Message.obtain();
 					Bundle data = new Bundle();
@@ -803,11 +800,7 @@ public class MahalayaService extends Service {
 					message.setData(data);
 					handler.sendMessage(message);
 
-					try {
-						Thread.sleep(3000);
-					} catch (InterruptedException ignored) {
-					}
-
+					SystemClock.sleep(2000);
 				}
 			});
 
@@ -820,11 +813,10 @@ public class MahalayaService extends Service {
 	/**
 	 * Builds the notification that, when clicked, will open {@link ThankYouActivity}.
 	 * <p>
-	 * When this function is called, the playback is complete and the media player has been released. Previously, we stopped
-	 * the service and created this notification using a different ID. However, it was seen that if quite some time passes
-	 * from the time of posting this notification, the notification failed to start {@link ThankYouActivity}. Hence, this
-	 * notification will be created with the service still running in the foreground. Once the user taps on the notification,
-	 * {@link ThankYouActivity} will be created, which will, in turn, kill this service via an intent.</p>
+	 * When this function is called, the playback is complete and the media player has been released. Previously, we stopped the service and created this
+	 * notification using a different ID. However, it was seen that if quite some time passes from the time of posting this notification, the notification
+	 * failed to start {@link ThankYouActivity}. Hence, this notification will be created with the service still running in the foreground. Once the user taps
+	 * on the notification, {@link ThankYouActivity} will be created, which will, in turn, kill this service via an intent.</p>
 	 */
 	private void buildFinalNotification() {
 		createNotificationChannel(FINAL_NOTIFICATION_ID);

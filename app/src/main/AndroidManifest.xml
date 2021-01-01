@@ -68,6 +68,7 @@
         <service
             android:name="in.basulabs.mahalaya.MahalayaService"
             android:exported="false"
+            android:foregroundServiceType="mediaPlayback"
             android:taskAffinity=""/>
 
         <activity
