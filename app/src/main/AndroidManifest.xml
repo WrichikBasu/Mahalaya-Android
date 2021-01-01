@@ -19,7 +19,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:theme="@android:style/Theme.NoDisplay">
+            android:theme="@style/Theme.AppCompat.Translucent">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -68,7 +68,6 @@
         <service
             android:name="in.basulabs.mahalaya.MahalayaService"
             android:exported="false"
-            android:launchMode="singleInstance"
             android:taskAffinity=""/>
 
         <activity
